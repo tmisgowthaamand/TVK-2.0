@@ -25,7 +25,8 @@ IMG_URLS = {
     "epic_not_found": f"{IMG_BASE}/epic_not_found.png?v=1",
     "invite_1": f"{IMG_BASE}/invite_1.png?v=1",
     "invite_2": f"{IMG_BASE}/invite_2.png?v=1",
-    "invite_3": f"{IMG_BASE}/invite_3.png?v=1"
+    "invite_3": f"{IMG_BASE}/invite_3.png?v=1",
+    "booth_results": f"{IMG_BASE}/booth_results.png?v=1"
 }
 
 CAT_MAP = {
@@ -461,7 +462,7 @@ async def handle_flow7_poll(phone, text, session):
         result_str += f"{label} {bar} {pct}% ({count} votes)\n"
         
     result_str += f"\n🗳️ *Total Votes: {total} from Booth {booth}*\n────────────────────\n\nThis data directly shapes our constituency priorities.\n\n_Send *Hi* anytime to start again._"
-    send_text_message(phone, result_str)
+    send_image_message(phone, IMG_URLS["booth_results"], result_str)
 
     session["state"] = "DONE"
 
