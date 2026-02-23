@@ -22,7 +22,10 @@ IMG_URLS = {
     "thank_you": f"{IMG_BASE}/thank_you.png?v={int(time.time())}",
     "success": f"{IMG_BASE}/success.png?v=2",
     "ward_connect": f"{IMG_BASE}/ward_connect.png?v=2",
-    "epic_not_found": f"{IMG_BASE}/epic_not_found.png?v=1"
+    "epic_not_found": f"{IMG_BASE}/epic_not_found.png?v=1",
+    "invite_1": f"{IMG_BASE}/invite_1.png?v=1",
+    "invite_2": f"{IMG_BASE}/invite_2.png?v=1",
+    "invite_3": f"{IMG_BASE}/invite_3.png?v=1"
 }
 
 CAT_MAP = {
@@ -301,8 +304,8 @@ Thank you for being an active voice in shaping Kavundampalayam.\n\nSend Hi anyti
         send_list_message(phone, msg, "Select Category", sections)
 
     elif "9" in sel or "invite" in sel or "menu_9" in sel:
-        send_text_message(phone, "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
-        send_text_message(phone, """────────────────────
+        send_image_message(phone, IMG_URLS["invite_1"], "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
+        send_image_message(phone, IMG_URLS["invite_2"], """────────────────────
 🗳️ TVK Kavundampalayam — Voter Engagement Platform
 
 Your constituency. Your voice. Your future.
@@ -318,7 +321,7 @@ Join Venkatraman's official WhatsApp platform to:
 Every voter's voice matters. Be heard.
 TVK — Kavundampalayam
 ────────────────────""")
-        send_text_message(phone, f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session['booth']} total participants: 47\n\nThank you for growing this movement, {session['name']}.\nSend Hi anytime to start again.")
+        send_image_message(phone, IMG_URLS["invite_3"], f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session['booth']} total participants: 47\n\nThank you for growing this movement, {session['name']}.\nSend Hi anytime to start again.")
         session["state"] = "DONE"
         
     else:
@@ -465,12 +468,12 @@ async def handle_flow7_poll(phone, text, session):
 def handle_flow8_cat(phone, text, session):
     session["photo_cat"] = text
     session["state"] = "FLOW8_PHOTO"
-    send_button_message(phone, "Now please send a photo of the issue.\nYou can add a caption describing the problem along with the photo.", [{"id": "skip_photo", "title": "SKIP Photo"}])
+    send_button_message(phone, "Now please send a photo of the issue.\nYou can add a caption describing the problem along with the photo.", [{"id": "skip_photo", "title": "SKIP Photo"}], IMG_URLS["photo_banner"])
 
 def handle_flow8_photo(phone, image_id, text, session):
     session["state"] = "FLOW8_LOC"
     session["photo_desc"] = text
-    send_button_message(phone, "Photo received. Now please share the location of this issue (Pin or Live Location).", [{"id": "skip_loc", "title": "SKIP"}])
+    send_button_message(phone, "Photo received. Now please share the location of this issue (Pin or Live Location).", [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
 
 async def handle_loc_skip(phone, text, lat, lon, session, flow):
     skipped = (text and text.upper() == "SKIP") or (not lat and not lon)
@@ -582,8 +585,9 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
 
         if not skipped:
             msg = f"✅ Photo Evidence Submitted!\n\n───────────────\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📝 Description: {session.get('photo_desc', '')}\n📸 Photo: Received\n📍 Location: Main Road, Kavundampalayam\n🏛️ Booth: {session['booth']}\n📅 Submitted: {today}\n───────────────\n\nOur field team will inspect the spot and take necessary action.\n\nSend Hi anytime to start again."
-            send_text_message(phone, msg)
+            send_image_message(phone, IMG_URLS["success"], msg)
         else:
-            send_text_message(phone, f"✅ Photo Evidence Submitted!\n\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📸 Photo: Received\n🏛️ Booth: {session['booth']}\n\nSend Hi anytime to start again.")
+            msg = f"✅ Photo Evidence Submitted!\n\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📸 Photo: Received\n🏛️ Booth: {session['booth']}\n\nSend Hi anytime to start again."
+            send_image_message(phone, IMG_URLS["success"], msg)
 
     session["state"] = "DONE"
