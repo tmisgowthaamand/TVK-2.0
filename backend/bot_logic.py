@@ -26,7 +26,8 @@ IMG_URLS = {
     "invite_1": f"{IMG_BASE}/invite_1.png?v=1",
     "invite_2": f"{IMG_BASE}/invite_2.png?v=1",
     "invite_3": f"{IMG_BASE}/invite_3.png?v=1",
-    "booth_results": f"{IMG_BASE}/booth_results.png?v=1"
+    "booth_results": f"{IMG_BASE}/booth_results.png?v=1",
+    "booth_cooldown": f"{IMG_BASE}/booth_cooldown.png?v=1"
 }
 
 CAT_MAP = {
@@ -422,7 +423,7 @@ async def handle_flow7_poll(phone, text, session):
             time_diff = (datetime.datetime.now() - vote_time).total_seconds()
             if time_diff < 1800:
                 mins_left = int((1800 - time_diff) / 60)
-                send_text_message(phone, f"📊 *Booth Pulse - Cool-down*\n\nYour voice has been recorded recently. To keep the live results balanced, you can update your pulse again in *{mins_left} minutes*.\n\n_Stay tuned for live updates!_")
+                send_image_message(phone, IMG_URLS["booth_cooldown"], f"📊 *Booth Pulse - Cool-down*\n\nYour voice has been recorded recently. To keep the live results balanced, you can update your pulse again in *{mins_left} minutes*.\n\n_Stay tuned for live updates!_")
                 session["state"] = "DONE"
                 return
         # If older than 30 mins, delete old vote to allow new one
