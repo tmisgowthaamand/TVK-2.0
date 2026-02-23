@@ -13,6 +13,8 @@ services:
         value: voter_db
       - key: MONGO_COLLECTION_VOTERS
         value: voters
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:5173,https://tvk-2-0.vercel.app
       - key: MONGO_URI_MEMBERS
         sync: false
       - key: MONGO_DB_MEMBERS

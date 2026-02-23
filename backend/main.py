@@ -24,12 +24,12 @@ app = FastAPI(title="TVK WhatsApp Bot Backend")
 
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
+# CORS Configuration
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://tvk-2-0.vercel.app"
-    ],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
