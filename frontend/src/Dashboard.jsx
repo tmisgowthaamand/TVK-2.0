@@ -28,7 +28,7 @@ export default function Dashboard() {
     const [analytics, setAnalytics] = useState([]);
     const [voters, setVoters] = useState([]);
 
-    const API_BASE = import.meta.env.VITE_API_BASE || "https://tvk-2-0.onrender.com";
+    const API_BASE = import.meta.env.VITE_API_BASE || "https://tvk-2-0-1.onrender.com";
 
     useEffect(() => {
         // Fetch Live Stats from Backend
