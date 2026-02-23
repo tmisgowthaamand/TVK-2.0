@@ -461,8 +461,10 @@ async def handle_flow7_poll(phone, text, session):
         bar = "█" * filled + "░" * (10 - filled)
         result_str += f"{label} {bar} {pct}% ({count} votes)\n"
         
-    result_str += f"\n🗳️ *Total Votes: {total} from Booth {booth}*\n────────────────────\n\nThis data directly shapes our constituency priorities.\n\n_Send *Hi* anytime to start again._"
-    send_image_message(phone, IMG_URLS["booth_results"], result_str)
+    result_str += f"\n🗳️ *Total Votes: {total} from Booth {booth}*\n\nThis data directly shapes our constituency priorities.\n\n_Send *Hi* anytime to start again._"
+    
+    send_image_message(phone, IMG_URLS["booth_results"], "")
+    send_text_message(phone, result_str)
 
     session["state"] = "DONE"
 
