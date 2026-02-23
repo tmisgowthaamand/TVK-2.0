@@ -75,24 +75,25 @@ export default function Dashboard() {
 
     return (
         <>
+            <div className="atmospheric-bg"></div>
             <div className="sidebar">
                 <div className="brand">
                     <div className="brand-dot"></div>
-                    TVK Connect
+                    <span>TVK Connect</span>
                 </div>
                 <div className="nav-menu">
-                    {navItems.map(item => (
+                    {navItems.map((item, idx) => (
                         <div
                             key={item}
-                            className={`nav-item ${activeTab === item ? 'active' : ''}`}
+                            className={`nav-item ${activeTab === item ? 'active' : ''} stagger-${idx + 1}`}
                             onClick={() => setActiveTab(item)}
                         >
-                            {item === 'Overview' && <LayoutDashboard size={20} />}
-                            {item === 'Grievances' && <AlertTriangle size={20} />}
-                            {item === 'Suggestions' && <MessageSquare size={20} />}
-                            {item === 'Volunteers' && <Shield size={20} />}
-                            {item === 'Voters' && <Users size={20} />}
-                            {item === 'Booth Analytics' && <Activity size={20} />}
+                            {item === 'Overview' && <LayoutDashboard size={18} />}
+                            {item === 'Grievances' && <AlertTriangle size={18} />}
+                            {item === 'Suggestions' && <MessageSquare size={18} />}
+                            {item === 'Volunteers' && <Shield size={18} />}
+                            {item === 'Voters' && <Users size={18} />}
+                            {item === 'Booth Analytics' && <Activity size={18} />}
                             {item}
                         </div>
                     ))}
@@ -101,12 +102,15 @@ export default function Dashboard() {
 
             <div className="main-content">
                 <div className="header animated">
-                    <h1>{activeTab}</h1>
-                    <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=e50914&color=fff" alt="Admin" style={{ borderRadius: '50%', width: '40px' }} />
-                        <div>
-                            <div style={{ fontWeight: 600 }}>Venkatraman Admin</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Ward Coordinator</div>
+                    <div>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--brand-surge)', marginBottom: '8px', letterSpacing: '0.2em' }}>COMMAND CENTER</div>
+                        <h1>{activeTab}</h1>
+                    </div>
+                    <div className="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=e63946&color=fff" alt="Admin" style={{ borderRadius: '50%', width: '32px' }} />
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px' }}>Venkatraman Admin</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: 600 }}>WARD COORDINATOR</div>
                         </div>
                     </div>
                 </div>
@@ -114,11 +118,11 @@ export default function Dashboard() {
                 {activeTab === 'Overview' && (
                     <div className="animated">
                         <div className="stats-grid">
-                            {stats.map(stat => (
-                                <div key={stat.id} className="stat-card">
+                            {stats.map((stat, idx) => (
+                                <div key={stat.id} className={`stat-card animated stagger-${idx + 1}`}>
                                     <div className="stat-header">
                                         {stat.icon}
-                                        <span style={{ fontSize: '14px' }}>{stat.title}</span>
+                                        <span>{stat.title}</span>
                                     </div>
                                     <div className="stat-value">{stat.value}</div>
                                     <div className="stat-label">{stat.trend}</div>
@@ -126,33 +130,35 @@ export default function Dashboard() {
                             ))}
                         </div>
 
-                        <div className="table-container">
-                            <div className="table-header">Recent Grievances</div>
+                        <div className="table-container animated stagger-3">
+                            <div className="table-header">Operational Registry: Recent Grievances</div>
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
-                                        <th>Booth</th>
+                                        <th>Booth / Part</th>
                                         <th>Category</th>
                                         <th>Status</th>
-                                        <th>Date</th>
+                                        <th>Date Logged</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {grievances.map(issue => (
                                         <tr key={issue.id}>
-                                            <td style={{ fontWeight: 500, color: '#fff' }}>{issue.id}</td>
-                                            <td>{issue.name}</td>
-                                            <td>{issue.booth}</td>
-                                            <td>{issue.category}</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{issue.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
+                                            <td style={{ color: 'var(--text-dim)' }}>SEC. {issue.booth}</td>
+                                            <td>
+                                                <span style={{ fontSize: '11px', fontWeight: 700 }}>{issue.category.toUpperCase()}</span>
+                                            </td>
                                             <td>
                                                 <span className={`status-badge ${issue.status === 'Open' ? 'status-open' : 'status-resolved'}`}>
-                                                    {issue.status === 'Open' ? <Clock size={12} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} /> : <CheckCircle size={12} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />}
+                                                    <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
                                                     {issue.status}
                                                 </span>
                                             </td>
-                                            <td>{issue.date}</td>
+                                            <td style={{ fontSize: '12px', color: 'var(--text-dim)' }}>{issue.date}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -164,7 +170,7 @@ export default function Dashboard() {
                 {activeTab === 'Grievances' && (
                     <div className="animated">
                         <div className="table-container">
-                            <div className="table-header">All Grievances</div>
+                            <div className="table-header">Master Database: All Grievances</div>
                             <table>
                                 <thead>
                                     <tr>
@@ -172,19 +178,17 @@ export default function Dashboard() {
                                         <th>Voter Name</th>
                                         <th>Booth</th>
                                         <th>Category</th>
-                                        <th>Description</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
+                                        <th>Status Control</th>
+                                        <th>Date Logged</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {allGrievances.map(issue => (
                                         <tr key={issue.id}>
-                                            <td style={{ fontWeight: 500, color: '#fff' }}>{issue.id}</td>
-                                            <td>{issue.name}</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{issue.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
                                             <td>{issue.booth}</td>
                                             <td>{issue.category}</td>
-                                            <td>{issue.description || '-'}</td>
                                             <td>
                                                 <select
                                                     className="status-select"
@@ -192,9 +196,9 @@ export default function Dashboard() {
                                                     onClick={(e) => e.stopPropagation()}
                                                     onChange={(e) => handleStatusChange(issue.id, e.target.value)}
                                                 >
-                                                    <option value="Open">Open</option>
-                                                    <option value="In Progress">In Progress</option>
-                                                    <option value="Resolved">Resolved</option>
+                                                    <option value="Open">OPEN</option>
+                                                    <option value="In Progress">IN PROGRESS</option>
+                                                    <option value="Resolved">RESOLVED</option>
                                                 </select>
                                             </td>
                                             <td>{issue.date}</td>
@@ -209,25 +213,25 @@ export default function Dashboard() {
                 {activeTab === 'Suggestions' && (
                     <div className="animated">
                         <div className="table-container">
-                            <div className="table-header">Suggestions from Voters</div>
+                            <div className="table-header">Community Intelligence: Suggestions</div>
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
-                                        <th>Booth</th>
-                                        <th>Suggestion</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
+                                        <th>Booth / Part</th>
+                                        <th>Strategic Suggestion</th>
+                                        <th>Review Status</th>
+                                        <th>Logged</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {suggestions.map(s => (
                                         <tr key={s.id}>
-                                            <td style={{ fontWeight: 500, color: '#fff' }}>{s.id}</td>
-                                            <td>{s.name}</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{s.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{s.name.toUpperCase()}</td>
                                             <td>{s.booth}</td>
-                                            <td>{s.suggestion}</td>
+                                            <td style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)' }}>{s.suggestion}</td>
                                             <td>
                                                 <select
                                                     className="status-select"
@@ -235,13 +239,13 @@ export default function Dashboard() {
                                                     onClick={(e) => e.stopPropagation()}
                                                     onChange={(e) => handleStatusChange(s.id, e.target.value)}
                                                 >
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="Reviewing">Reviewing</option>
-                                                    <option value="Approved">Approved</option>
-                                                    <option value="Rejected">Rejected</option>
+                                                    <option value="Pending">PENDING</option>
+                                                    <option value="Reviewing">REVIEWING</option>
+                                                    <option value="Approved">APPROVED</option>
+                                                    <option value="Rejected">REJECTED</option>
                                                 </select>
                                             </td>
-                                            <td>{s.date}</td>
+                                            <td style={{ whiteSpace: 'nowrap' }}>{s.date}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -253,25 +257,25 @@ export default function Dashboard() {
                 {activeTab === 'Volunteers' && (
                     <div className="animated">
                         <div className="table-container">
-                            <div className="table-header">Registered Volunteers</div>
+                            <div className="table-header">Personnel Roster: Registered Volunteers</div>
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Ref ID</th>
-                                        <th>Voter Name</th>
-                                        <th>Booth</th>
-                                        <th>Preferred Role</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
+                                        <th>Volunteer Name</th>
+                                        <th>Assigned Booth</th>
+                                        <th>Specialized Role</th>
+                                        <th>Deployment Status</th>
+                                        <th>Onboarded</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {volunteers.map(v => (
                                         <tr key={v.id}>
-                                            <td style={{ fontWeight: 500, color: '#fff' }}>{v.id}</td>
-                                            <td>{v.name}</td>
-                                            <td>{v.booth}</td>
-                                            <td>{v.role}</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{v.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{v.name.toUpperCase()}</td>
+                                            <td>BOOTH {v.booth}</td>
+                                            <td style={{ fontWeight: 700, color: 'var(--brand-surge)' }}>{v.role.toUpperCase()}</td>
                                             <td>
                                                 <select
                                                     className="status-select"
@@ -279,10 +283,10 @@ export default function Dashboard() {
                                                     onClick={(e) => e.stopPropagation()}
                                                     onChange={(e) => handleStatusChange(v.id, e.target.value)}
                                                 >
-                                                    <option value="Registered">Registered</option>
-                                                    <option value="In Review">In Review</option>
-                                                    <option value="Active">Active</option>
-                                                    <option value="Completed">Completed</option>
+                                                    <option value="Registered">REGISTERED</option>
+                                                    <option value="In Review">IN REVIEW</option>
+                                                    <option value="Active">ACTIVE</option>
+                                                    <option value="Completed">COMPLETED</option>
                                                 </select>
                                             </td>
                                             <td>{v.date}</td>
@@ -297,28 +301,28 @@ export default function Dashboard() {
                 {activeTab === 'Voters' && (
                     <div className="animated">
                         <div className="table-container">
-                            <div className="table-header">Verified Voters List</div>
+                            <div className="table-header">Verified Electorate List</div>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Voter ID</th>
-                                        <th>Name</th>
-                                        <th>Booth Number</th>
+                                        <th>Voter identification No.</th>
+                                        <th>Full Name</th>
+                                        <th>Electoral Sector</th>
                                         <th>District</th>
-                                        <th>Status</th>
+                                        <th>Registry Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {voters.map(v => (
                                         <tr key={v.id}>
-                                            <td style={{ fontWeight: 500, color: '#fff' }}>{v.id}</td>
-                                            <td>{v.name}</td>
-                                            <td>Booth {v.booth}</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{v.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{v.name.toUpperCase()}</td>
+                                            <td>SECTOR {v.booth}</td>
                                             <td>{v.district}</td>
                                             <td>
                                                 <span className="status-badge status-resolved">
-                                                    <CheckCircle size={12} style={{ marginRight: 4, display: 'inline-block', verticalAlign: 'middle' }} />
-                                                    {v.status}
+                                                    <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                                                    {v.status.toUpperCase()}
                                                 </span>
                                             </td>
                                         </tr>
@@ -331,20 +335,26 @@ export default function Dashboard() {
 
                 {activeTab === 'Booth Analytics' && (
                     <div className="animated">
-                        <div className="table-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
-                            <div className="table-header">Top Booths by Grievances</div>
+                        <div className="table-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                            <div className="table-header">Intelligence Report: Regional Incident Density</div>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Booth Number</th>
-                                        <th>Number of Issues</th>
+                                        <th>Electoral Sector</th>
+                                        <th>Analytic Incident Count</th>
+                                        <th>Action Priority</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {analytics.map((a, i) => (
                                         <tr key={i}>
-                                            <td style={{ fontWeight: 500, color: '#fff', fontSize: '16px' }}>Booth {a.booth}</td>
-                                            <td style={{ color: '#ffb800', fontWeight: 'bold' }}>{a.issues} Issues</td>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontSize: '18px', fontFamily: 'var(--font-display)' }}>SECTOR {a.booth}</td>
+                                            <td style={{ color: 'var(--brand-surge)', fontWeight: 800, fontSize: '24px', fontFamily: 'var(--font-display)' }}>{a.issues} EVENTS</td>
+                                            <td>
+                                                <div style={{ height: '4px', width: '100%', background: 'var(--glass-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                    <div style={{ height: '100%', width: `${Math.min((a.issues / 20) * 100, 100)}%`, background: 'var(--brand-surge)' }}></div>
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -355,4 +365,5 @@ export default function Dashboard() {
             </div>
         </>
     );
+
 }
