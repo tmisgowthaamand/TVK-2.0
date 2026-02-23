@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: tvk-backend
+    env: docker
+    dockerContext: ./backend
+    dockerfile: ./backend/Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: MONGO_URI_VOTERS
+        sync: false
+      - key: MONGO_DB_VOTERS
+        value: voter_db
+      - key: MONGO_COLLECTION_VOTERS
+        value: voters
+      - key: MONGO_URI_MEMBERS
+        sync: false
+      - key: MONGO_DB_MEMBERS
+        value: member_db
+      - key: MONGO_COLLECTION_MEMBER_REQUESTS
+        value: member_requests
+      - key: MONGO_COLLECTION_GRIEVANCES
+        value: grievances
+      - key: MONGO_COLLECTION_LOGS
+        value: logs
+      - key: MONGO_COLLECTION_BOOTH_PULSE
+        value: booth_pulse
+      - key: WHATSAPP_APP_ID
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_API_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_WEBHOOK_URL
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
+      - key: PORT
+        value: 3000
