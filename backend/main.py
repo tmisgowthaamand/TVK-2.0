@@ -26,7 +26,10 @@ app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://tvk-2-0.vercel.app"
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
