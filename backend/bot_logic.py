@@ -30,7 +30,8 @@ IMG_URLS = {
     "booth_cooldown": f"{IMG_BASE}/booth_cooldown.png?v=1",
     "track_submission": f"{IMG_BASE}/track_submission.png?v=1",
     "status_report": f"{IMG_BASE}/status_report.png?v=1",
-    "constituency_update": f"{IMG_BASE}/constituency_update.png?v=1"
+    "constituency_update": f"{IMG_BASE}/constituency_update.png?v=1",
+    "invalid_ref": f"{IMG_BASE}/invalid_ref.png?v=1"
 }
 
 CAT_MAP = {
@@ -374,7 +375,7 @@ def handle_flow3_mode(phone, text, session):
 async def handle_flow5_ref(phone, text, session):
     ref = text.upper() if text else ""
     if not any(ref.startswith(prefix) for prefix in ["GRV", "SUG", "VOL", "PHT"]):
-        send_text_message(phone, "Please enter a valid Reference ID starting with GRV, SUG, VOL, or PHT.\nExample: GRV12345")
+        send_image_message(phone, IMG_URLS["invalid_ref"], "Please enter a valid Reference ID starting with GRV, SUG, VOL, or PHT.\nExample: GRV12345")
         return
     
     record = await grievances_col.find_one({"$or": [{"ref_id": ref}, {"ticketId": ref}]})
