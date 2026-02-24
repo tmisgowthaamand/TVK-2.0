@@ -7,11 +7,14 @@ import {
     Activity,
     CheckCircle,
     Clock,
-    Shield
+    Shield,
+    LogOut
 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 export default function Dashboard() {
+    const { currentUser, logout } = useAuth();
     const [activeTab, setActiveTab] = useState('Overview');
 
     // Live Dashboard States
@@ -79,7 +82,7 @@ export default function Dashboard() {
             <div className="sidebar">
                 <div className="brand">
                     <div className="brand-dot"></div>
-                    <span>TVK Connect</span>
+                    <span>TVK Kavndampalayam</span>
                 </div>
                 <div className="nav-menu">
                     {navItems.map((item, idx) => (
@@ -103,15 +106,23 @@ export default function Dashboard() {
             <div className="main-content">
                 <div className="header animated">
                     <div>
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--brand-surge)', marginBottom: '8px', letterSpacing: '0.2em' }}>COMMAND CENTER</div>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--brand-surge)', marginBottom: '8px', letterSpacing: '0.2em' }}>ADMIN COMMAND CENTER</div>
                         <h1>{activeTab}</h1>
                     </div>
                     <div className="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=e63946&color=fff" alt="Admin" style={{ borderRadius: '50%', width: '32px' }} />
+                        <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'Admin')}&background=e63946&color=fff`} alt="User" style={{ borderRadius: '50%', width: '32px' }} />
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 700, fontSize: '13px' }}>Venkatraman Admin</div>
-                            <div style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: 600 }}>WARD COORDINATOR</div>
+                            <div style={{ fontWeight: 700, fontSize: '13px' }}>{currentUser?.displayName || 'Admin'}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: 600 }}>{currentUser?.role || 'USER'}</div>
                         </div>
+                        <button
+                            onClick={logout}
+                            className="logout-btn"
+                            id="logout-btn"
+                            title="Sign Out"
+                        >
+                            <LogOut size={18} />
+                        </button>
                     </div>
                 </div>
 
