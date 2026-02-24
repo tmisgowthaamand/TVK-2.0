@@ -368,6 +368,11 @@ tr:hover td {
   background: rgba(230, 57, 70, 0.05);
 }
 
+.status-select option {
+  background-color: var(--bg-card);
+  color: var(--text-vivid);
+}
+
 /* Scrollbar Artistry */
 ::-webkit-scrollbar {
   width: 6px;
