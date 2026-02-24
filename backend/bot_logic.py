@@ -27,7 +27,10 @@ IMG_URLS = {
     "invite_2": f"{IMG_BASE}/invite_2.png?v=1",
     "invite_3": f"{IMG_BASE}/invite_3.png?v=1",
     "booth_results": f"{IMG_BASE}/booth_results.png?v=1",
-    "booth_cooldown": f"{IMG_BASE}/booth_cooldown.png?v=1"
+    "booth_cooldown": f"{IMG_BASE}/booth_cooldown.png?v=1",
+    "track_submission": f"{IMG_BASE}/track_submission.png?v=1",
+    "status_report": f"{IMG_BASE}/status_report.png?v=1",
+    "constituency_update": f"{IMG_BASE}/constituency_update.png?v=1"
 }
 
 CAT_MAP = {
@@ -246,7 +249,7 @@ _Click the link above to start a voice call or chat._"""
         
     elif "5" in sel or "track" in sel or "menu_5" in sel:
         session["state"] = "FLOW5_REF"
-        send_text_message(phone, "🔍 Track Your Submission\n\nPlease enter your Reference ID to check the current status.\nYour Reference ID was shared when you first submitted.\n\nExamples: GRV12345, SUG67890, VOL11223")
+        send_image_message(phone, IMG_URLS["track_submission"], "🔍 Track Your Submission\n\nPlease enter your Reference ID to check the current status.\nYour Reference ID was shared when you first submitted.\n\nExamples: GRV12345, SUG67890, VOL11223")
 
     elif "6" in sel or "activity" in sel or "menu_6" in sel:
         # Load real data from mongodb 2 - supporting both schemas
@@ -385,7 +388,7 @@ async def handle_flow5_ref(phone, text, session):
         booth = str(record.get("booth") or record.get("partNumber") or session.get('booth', 'Unknown'))
         date = record.get("timestamp") or (record.get("createdAt").strftime("%d %b %Y") if record.get("createdAt") else "N/A")
 
-        send_text_message(phone, f"""📋 Status Report\n
+        send_image_message(phone, IMG_URLS["status_report"], f"""📋 Status Report\n
 ───────────────
 🔖 Reference: {ref}
 📁 Type: {record.get('type', 'Grievance')}

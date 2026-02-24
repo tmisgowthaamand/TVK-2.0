@@ -5,9 +5,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from bot_logic import handle_incoming_message
+from bot_logic import handle_incoming_message, IMG_URLS
 from db import voters_collection, grievances_col, member_requests_col
-from whatsapp import send_text_message
+from whatsapp import send_text_message, send_image_message
 
 load_dotenv()
 
@@ -185,7 +185,7 @@ async def update_status(request: Request):
         phone = record.get("voter_phone") or record.get("phoneNumber")
         if phone:
             msg = f"🔔 *Constituency Update*\n\nYour reported issue/suggestion (ID: {ref_id}) status has been changed to: *{new_status}*.\n\nThank you for your engagement.\n_TVK Kavundampalayam Team_"
-            send_text_message(phone, msg)
+            send_image_message(phone, IMG_URLS.get("constituency_update", f"{IMG_URLS['welcome_banner'].replace('welcome_banner.jpg', 'constituency_update.png')}"), msg)
         
     return {"status": "success"}
 
