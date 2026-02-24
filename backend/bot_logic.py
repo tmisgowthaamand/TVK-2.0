@@ -31,7 +31,8 @@ IMG_URLS = {
     "track_submission": f"{IMG_BASE}/track_submission.png?v=1",
     "status_report": f"{IMG_BASE}/status_report.png?v=1",
     "constituency_update": f"{IMG_BASE}/constituency_update.png?v=1",
-    "invalid_ref": f"{IMG_BASE}/invalid_ref.png?v=1"
+    "invalid_ref": f"{IMG_BASE}/invalid_ref.png?v=1",
+    "engagement_summary": f"{IMG_BASE}/engagement_summary.png?v=1"
 }
 
 CAT_MAP = {
@@ -266,7 +267,7 @@ _Click the link above to start a voice call or chat._"""
         vol_role_raw = vol_req.get("role", "N/A") if vol_req else "N/A"
         vol_role = CAT_MAP.get(vol_role_raw, vol_role_raw)
 
-        send_text_message(phone, f"""📋 Your Engagement Summary\n\n👤 {session['name']} | Booth {session['booth']} | Kavundampalayam
+        send_image_message(phone, IMG_URLS["engagement_summary"], f"""📋 Your Engagement Summary\n\n👤 {session['name']} | Booth {session['booth']} | Kavundampalayam
 ───────────────
 🔴 Issues Raised: {issues_raised}
 ├ Open: {issues_open}
