@@ -73,7 +73,8 @@ async def get_grievances():
             "booth": str(i.get("booth") or i.get("partNumber") or "Unknown"),
             "category": CAT_MAP.get(cat_raw, cat_raw),
             "status": i.get("status", "Open"),
-            "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "N/A")
+            "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "N/A"),
+            "description": i.get("description") or i.get("message") or ""
         })
     return {"grievances": results}
 

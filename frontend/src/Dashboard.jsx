@@ -139,6 +139,7 @@ export default function Dashboard() {
                                         <th>Voter Name</th>
                                         <th>Booth / Part</th>
                                         <th>Category</th>
+                                        <th>Issue Description</th>
                                         <th>Status</th>
                                         <th>Date Logged</th>
                                     </tr>
@@ -151,6 +152,11 @@ export default function Dashboard() {
                                             <td style={{ color: 'var(--text-dim)' }}>SEC. {issue.booth}</td>
                                             <td>
                                                 <span style={{ fontSize: '11px', fontWeight: 700 }}>{issue.category.toUpperCase()}</span>
+                                            </td>
+                                            <td style={{ maxWidth: '250px', verticalAlign: 'top' }} title={issue.description}>
+                                                <div style={{ fontSize: '12px', lineHeight: '1.5', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                                    {issue.description || 'No description provided'}
+                                                </div>
                                             </td>
                                             <td>
                                                 <span className={`status-badge ${issue.status === 'Open' ? 'status-open' : 'status-resolved'}`}>
@@ -178,6 +184,7 @@ export default function Dashboard() {
                                         <th>Voter Name</th>
                                         <th>Booth</th>
                                         <th>Category</th>
+                                        <th>Issue Description</th>
                                         <th>Status Control</th>
                                         <th>Date Logged</th>
                                     </tr>
@@ -189,6 +196,11 @@ export default function Dashboard() {
                                             <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
                                             <td>{issue.booth}</td>
                                             <td>{issue.category}</td>
+                                            <td style={{ maxWidth: '300px', verticalAlign: 'top' }}>
+                                                <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                                                    {issue.description || 'No description provided'}
+                                                </div>
+                                            </td>
                                             <td>
                                                 <select
                                                     className="status-select"
@@ -231,7 +243,11 @@ export default function Dashboard() {
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{s.id}</td>
                                             <td style={{ fontWeight: 600 }}>{s.name.toUpperCase()}</td>
                                             <td>{s.booth}</td>
-                                            <td style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)' }}>{s.suggestion}</td>
+                                            <td style={{ maxWidth: '350px', verticalAlign: 'top' }}>
+                                                <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                                                    {s.suggestion || 'No suggestion provided'}
+                                                </div>
+                                            </td>
                                             <td>
                                                 <select
                                                     className="status-select"
