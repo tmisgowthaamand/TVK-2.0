@@ -722,6 +722,9 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
 
 
 async def send_loop_prompt(phone, session):
+    # Add a small delay to ensure the previous message arrives first and to create a natural pause
+    await asyncio.sleep(2)
+    
     # Rotate between showing Ward Connect and TVK Networks
     choice = random.choice(["ward", "network"])
     
