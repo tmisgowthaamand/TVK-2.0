@@ -75,7 +75,9 @@ async def get_grievances():
             "category": CAT_MAP.get(cat_raw, cat_raw),
             "status": i.get("status", "Open"),
             "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "N/A"),
-            "description": i.get("description") or i.get("message") or ""
+            "description": i.get("description") or i.get("message") or "",
+            "type": i.get("type", "Grievance"),
+            "photo_id": i.get("photo_id")
         })
     return {"grievances": results}
 
@@ -96,7 +98,9 @@ async def get_all_grievances():
             "category": CAT_MAP.get(cat_raw, cat_raw),
             "status": i.get("status", "Open"),
             "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
-            "description": i.get("description") or i.get("message") or ""
+            "description": i.get("description") or i.get("message") or "",
+            "type": i.get("type", "Grievance"),
+            "photo_id": i.get("photo_id")
         })
     return {"grievances": results}
 

@@ -706,7 +706,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             "description": session.get('photo_desc', ''),
             "status": "Open",
             "timestamp": today,
-            "type": "Grievance" # Treating photo evidenece like a grievance in DB
+            "type": "Photo Evidence" # Treating photo evidenece like a grievance in DB
         }
         if not skipped:
             doc["location"] = {"lat": lat, "lon": lon}
