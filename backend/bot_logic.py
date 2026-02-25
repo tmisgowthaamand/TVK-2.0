@@ -760,9 +760,12 @@ async def handle_flow9_networks(phone, text, session):
         send_image_message(phone, IMG_URLS["welcome_banner"], msg)
         await send_loop_prompt(phone, session)
     elif "invite" in sel or "btn_invite" in sel:
-        send_image_message(phone, IMG_URLS["invite_1"], "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
-        send_image_message(phone, IMG_URLS["invite_2"], """────────────────────\n🗳️ TVK Kavundampalayam — Voter Engagement Platform\n\nYour constituency. Your voice. Your future.\nJoin Venkatraman's official WhatsApp platform to:\n✅ Report local issues directly\n✅ Share ideas for development\n✅ Volunteer and participate\n✅ Get official campaign updates\n✅ Track your submitted issues\n\n👉 Send Hi to +91-XXXXXXXXXX on WhatsApp to get started.\n\nEvery voter's voice matters. Be heard.\nTVK — Kavundampalayam\n────────────────────""")
-        send_image_message(phone, IMG_URLS["invite_3"], f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session.get('booth', 'Unknown')} total participants: 47\n\nThank you for growing this movement, {session.get('name', 'Anonymous')}.")
+        send_image_message(phone, IMG_URLS["invite_1"], "👥 *Spread the Word!*\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
+        await asyncio.sleep(1)
+        send_image_message(phone, IMG_URLS["invite_2"], """────────────────────\n🗳️ *TVK Kavundampalayam — Voter Engagement Platform*\n\nYour constituency. Your voice. Your future.\nJoin Venkatraman's official WhatsApp platform to:\n✅ Report local issues directly\n✅ Share ideas for development\n✅ Volunteer and participate\n✅ Get official campaign updates\n✅ Track your submitted issues\n\n👉 Send Hi to +91-XXXXXXXXXX on WhatsApp to get started.\n\nEvery voter's voice matters. Be heard.\nTVK — Kavundampalayam\n────────────────────""")
+        await asyncio.sleep(1)
+        send_image_message(phone, IMG_URLS["invite_3"], f"📊 *Your Referral Stats*\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session.get('booth', 'Unknown')} total participants: 47\n\nThank you for growing this movement, {session.get('name', 'Anonymous')}.")
+        await asyncio.sleep(1)
         await send_loop_prompt(phone, session)
     else:
         send_button_message(phone, "Please select an option.", [
