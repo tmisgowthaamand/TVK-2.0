@@ -117,8 +117,18 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
     elif state == "POST_FLOW_EPIC":
         await handle_post_flow_epic(phone, incoming_text, session)
         
+    elif state == "FLOW9_NETWORKS":
+        await handle_flow9_networks(phone, incoming_text, session)
+        
+    elif state == "LOOP_PROMPT":
+        if incoming_text and incoming_text.lower() == "btn_main_menu":
+            session["state"] = "MAIN_MENU"
+            await send_main_menu(phone, session)
+        else:
+            send_button_message(phone, "Please use the button below to continue.", [{"id": "btn_main_menu", "title": "🏠 Return to Main Menu"}], None)
+            
     elif state == "DONE":
-        send_text_message(phone, "Please send Hi to restart to the main menu.")
+        send_loop_prompt(phone, session)
     else:
         # Fallback
         sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
@@ -241,7 +251,7 @@ We are documenting concerns so that future priorities are shaped by real people 
             "rows": [
                 {"id": "menu_7", "title": "📊 Booth Pulse"},
                 {"id": "menu_8", "title": "📸 Photo Evidence"},
-                {"id": "menu_9", "title": "👥 Invite a Voter"},
+                {"id": "menu_9", "title": "🌐 TVK Networks"},
                 {"id": "menu_10", "title": "📞 Ward Connect"}
             ]
         }
@@ -371,26 +381,14 @@ Thank you for being an active voice in shaping Kavundampalayam.\n\nSend Hi anyti
         ]}]
         send_list_message(phone, msg, "Select Category", sections)
 
-    elif "9" in sel or "invite" in sel or "menu_9" in sel:
-        send_image_message(phone, IMG_URLS["invite_1"], "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
-        send_image_message(phone, IMG_URLS["invite_2"], """────────────────────
-🗳️ TVK Kavundampalayam — Voter Engagement Platform
-
-Your constituency. Your voice. Your future.
-Join Venkatraman's official WhatsApp platform to:
-✅ Report local issues directly
-✅ Share ideas for development
-✅ Volunteer and participate
-✅ Get official campaign updates
-✅ Track your submitted issues
-
-👉 Send Hi to +91-XXXXXXXXXX on WhatsApp to get started.
-
-Every voter's voice matters. Be heard.
-TVK — Kavundampalayam
-────────────────────""")
-        send_image_message(phone, IMG_URLS["invite_3"], f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session['booth']} total participants: 47\n\nThank you for growing this movement, {session['name']}.\nSend Hi anytime to start again.")
-        session["state"] = "DONE"
+    elif "9" in sel or "invite" in sel or "network" in sel or "menu_9" in sel:
+        session["state"] = "FLOW9_NETWORKS"
+        msg = "🌐 *TVK Networks & Portals*\n\nExplore our digital initiatives or invite others to join the movement:"
+        send_button_message(phone, msg, [
+            {"id": "btn_tvk_family", "title": "👨‍👩‍👧‍👦 TVK Family"},
+            {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
+            {"id": "btn_invite", "title": "👥 Invite a Voter"}
+        ], IMG_URLS["welcome_banner"])
         
     else:
         send_text_message(phone, "Please select a valid option from the menu.")
@@ -713,3 +711,30 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             send_image_message(phone, IMG_URLS["success"], msg)
 
     session["state"] = "DONE"
+
+
+def send_loop_prompt(phone, session):
+    session["state"] = "LOOP_PROMPT"
+    send_button_message(phone, "What would you like to do next?", [{"id": "btn_main_menu", "title": "🏠 Return to Main Menu"}])
+
+async def handle_flow9_networks(phone, text, session):
+    sel = text.lower() if text else ""
+    if "family" in sel or "btn_tvk_family" in sel:
+        msg = "👨‍\u200d👩‍\u200d👧‍\u200d👦 *TVK Family*\n\nJoin our digital family and connect with fellow supporters across the globe!\n\nClick here to join 👉 https://tvk.family/"
+        send_image_message(phone, IMG_URLS["welcome_banner"], msg)
+        send_loop_prompt(phone, session)
+    elif "itwing" in sel or "btn_tvk_itwing" in sel:
+        msg = "💻 *TVK IT Wing*\n\nBe part of the digital vanguard leading the change! Join the IT Wing today.\n\nClick here to explore 👉 https://tvkitwing.com/"
+        send_image_message(phone, IMG_URLS["welcome_banner"], msg)
+        send_loop_prompt(phone, session)
+    elif "invite" in sel or "btn_invite" in sel:
+        send_image_message(phone, IMG_URLS["invite_1"], "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
+        send_image_message(phone, IMG_URLS["invite_2"], """────────────────────\n🗳️ TVK Kavundampalayam — Voter Engagement Platform\n\nYour constituency. Your voice. Your future.\nJoin Venkatraman's official WhatsApp platform to:\n✅ Report local issues directly\n✅ Share ideas for development\n✅ Volunteer and participate\n✅ Get official campaign updates\n✅ Track your submitted issues\n\n👉 Send Hi to +91-XXXXXXXXXX on WhatsApp to get started.\n\nEvery voter's voice matters. Be heard.\nTVK — Kavundampalayam\n────────────────────""")
+        send_image_message(phone, IMG_URLS["invite_3"], f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session.get('booth', 'Unknown')} total participants: 47\n\nThank you for growing this movement, {session.get('name', 'Anonymous')}.")
+        send_loop_prompt(phone, session)
+    else:
+        send_button_message(phone, "Please select an option.", [
+            {"id": "btn_tvk_family", "title": "👨‍\u200d👩‍\u200d👧‍\u200d👦 TVK Family"},
+            {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
+            {"id": "btn_invite", "title": "👥 Invite a Voter"}
+        ], None)
