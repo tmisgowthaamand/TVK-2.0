@@ -531,6 +531,7 @@ async def handle_post_flow_epic(phone, text, session):
             session["epic"] = epic
         else:
             session["epic_unverified"] = epic
+            today = datetime.datetime.now().strftime("%d %b %Y")
             # Insert this new unverified record into DB1
             await voters_collection.insert_one({
                 "voterId": epic,
@@ -538,7 +539,8 @@ async def handle_post_flow_epic(phone, text, session):
                 "partNumber": "Pending",
                 "phone": phone,
                 "status": "Unverified",
-                "source": "WhatsApp Bot"
+                "source": "WhatsApp Bot",
+                "createdAt": today
             })
             send_text_message(phone, "We recorded your input. Continuing to log your request...")
     
