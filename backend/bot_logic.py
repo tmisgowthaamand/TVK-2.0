@@ -427,7 +427,7 @@ def handle_flow1_cat(phone, text, session):
     send_button_message(phone, body, [{"id": "skip_desc", "title": "SKIP"}], IMG_URLS["desc_banner"])
 
 def handle_flow1_desc(phone, text, session):
-    session["desc"] = text
+    session["desc"] = "" if (text and text.lower() == "skip_desc") else text
     session["state"] = "FLOW1_PHOTO"
     body = "Thank you for the information. Now, please share a photo of the issue if possible.\n\nVisual evidence helps our team assess the situation faster."
     send_button_message(phone, body, [{"id": "skip_photo", "title": "SKIP"}], IMG_URLS["photo_banner"])
@@ -565,7 +565,9 @@ def handle_flow8_cat(phone, text, session):
 
 def handle_flow8_photo(phone, image_id, text, session):
     session["state"] = "FLOW8_LOC"
-    session["photo_desc"] = text
+    session["photo_desc"] = "" if (text and text.lower() == "skip_photo") else text
+    if image_id:
+        session["photo_id"] = image_id
     send_button_message(phone, "Photo received. Now please share the location of this issue (Pin or Live Location).", [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
 
 async def handle_post_flow_epic(phone, text, session):
@@ -727,6 +729,8 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         }
         if not skipped:
             doc["location"] = {"lat": lat, "lon": lon}
+        if session.get("photo_id"):
+            doc["photo_id"] = session["photo_id"]
         await grievances_col.insert_one(doc)
 
         if not skipped:
