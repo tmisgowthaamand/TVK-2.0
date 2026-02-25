@@ -128,8 +128,8 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         elif incoming_text and ("ward" in incoming_text.lower() or "connect" in incoming_text.lower()):
              # Trigger ward connect logic
              await handle_main_menu(phone, "menu_10", session)
-        elif incoming_text and ("tvk" in incoming_text.lower() or "family" in incoming_text.lower() or "itwing" in incoming_text.lower() or "btn_tvk" in incoming_text.lower()):
-             # Directly handle the network selection
+        elif incoming_text and ("tvk" in incoming_text.lower() or "family" in incoming_text.lower() or "itwing" in incoming_text.lower() or "btn_tvk" in incoming_text.lower() or "invite" in incoming_text.lower() or "btn_invite" in incoming_text.lower()):
+             # Directly handle the network/invite selection
              await handle_flow9_networks(phone, incoming_text, session)
         else:
              # If they type something else, just take them to main menu
@@ -726,8 +726,8 @@ async def send_loop_prompt(phone, session):
     # Add a small delay to ensure the previous message arrives first and to create a natural pause
     await asyncio.sleep(2)
     
-    # Rotate between showing Ward Connect and TVK Networks
-    choice = random.choice(["ward", "network"])
+    # Rotate between showing Ward Connect, TVK Networks, and Invite
+    choice = random.choice(["ward", "network", "invite"])
     
     if choice == "ward":
          booth = session.get('booth', 'Unknown')
@@ -735,12 +735,18 @@ async def send_loop_prompt(phone, session):
          phone_num = "+919876543210"
          msg = f"📞 *Ward Connect — Booth {booth}*\n\nYour designated Ward Coordinator is available for support:\n\n👤 {name}\n📍 Gandhi Nagar, Kavundampalayam\n\nDirect Call: https://wa.me/{phone_num.replace('+', '')}"
          send_button_message(phone, msg, [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], IMG_URLS["ward_connect"])
-    else:
+    elif choice == "network":
          msg = "🌐 *TVK Networks*\n\nExplore our digital initiatives:"
          send_button_message(phone, msg, [
             {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"}
         ], IMG_URLS["welcome_banner"])
+    else:
+         msg = "👥 *Join the Movement*\n\nHelp us build a stronger, more connected Kavundampalayam. Invite your friends and family to join Venkatraman's official WhatsApp platform!"
+         send_button_message(phone, msg, [
+             {"id": "btn_invite", "title": "👥 Invite a Voter"},
+             {"id": "btn_main_menu", "title": "🏠 Main Menu"}
+         ], IMG_URLS["invite_1"])
     
     session["state"] = "LOOP_PROMPT"
 
