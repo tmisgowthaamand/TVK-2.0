@@ -2,12 +2,13 @@ import os
 import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import requests
 from bot_logic import handle_incoming_message, IMG_URLS
 from db import voters_collection, grievances_col, member_requests_col
-from whatsapp import send_text_message, send_image_message
+from whatsapp import send_text_message, send_image_message, TOKEN
 
 load_dotenv()
 
@@ -118,7 +119,8 @@ async def get_suggestions():
             "booth": str(i.get("booth") or i.get("partNumber") or ""),
             "suggestion": i.get("suggestion") or i.get("area") or "Member Request",
             "status": i.get("status", "Pending"),
-            "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "")
+            "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
+            "photo_id": i.get("photo_id")
         })
     return {"suggestions": results}
 
@@ -135,7 +137,8 @@ async def get_volunteers():
             "booth": str(i.get("booth", i.get("partNumber", ""))),
             "role": CAT_MAP.get(role_raw, role_raw),
             "status": i.get("status", "Registered"),
-            "date": i.get("timestamp", i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "")
+            "date": i.get("timestamp", i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
+            "photo_id": i.get("photo_id")
         })
     return {"volunteers": results}
 
@@ -166,6 +169,26 @@ async def get_voters():
             "status": i.get("status") or "Active"
         })
     return {"voters": results}
+
+@app.get("/api/dashboard/image/{photo_id}")
+async def get_whatsapp_image(photo_id: str):
+    try:
+        if not TOKEN:
+            raise HTTPException(status_code=500, detail="Missing WhatsApp token")
+        headers = {"Authorization": f"Bearer {TOKEN}"}
+        res = requests.get(f"https://graph.facebook.com/v17.0/{photo_id}", headers=headers)
+        res_data = res.json()
+        if "url" not in res_data:
+            raise HTTPException(status_code=404, detail="Image not found on WhatsApp API")
+            
+        img_url = res_data["url"]
+        img_res = requests.get(img_url, headers=headers)
+        if img_res.status_code != 200:
+            raise HTTPException(status_code=500, detail="Failed to download image from WhatsApp")
+            
+        return Response(content=img_res.content, media_type=img_res.headers.get("content-type", "image/jpeg"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/dashboard/update_status")
 async def update_status(request: Request):

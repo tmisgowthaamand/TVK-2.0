@@ -179,6 +179,13 @@ export default function Dashboard() {
                                                 <div style={{ fontSize: '12px', lineHeight: '1.5', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                                                     {issue.description || 'No description provided'}
                                                 </div>
+                                                {issue.photo_id && (
+                                                    <div style={{ marginTop: '8px' }}>
+                                                        <a href={`${API_BASE}/api/dashboard/image/${issue.photo_id}`} target="_blank" rel="noreferrer">
+                                                            <img src={`${API_BASE}/api/dashboard/image/${issue.photo_id}`} alt="Evidence" style={{ height: '60px', width: '80px', borderRadius: '4px', border: '1px solid var(--glass-border)', objectFit: 'cover' }} />
+                                                        </a>
+                                                    </div>
+                                                )}
                                             </td>
                                             <td>
                                                 <span className={`status-badge ${issue.status === 'Open' ? 'status-open' : 'status-resolved'}`}>
@@ -240,6 +247,13 @@ export default function Dashboard() {
                                                 <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>
                                                     {issue.description || 'No description provided'}
                                                 </div>
+                                                {issue.photo_id && (
+                                                    <div style={{ marginTop: '8px' }}>
+                                                        <a href={`${API_BASE}/api/dashboard/image/${issue.photo_id}`} target="_blank" rel="noreferrer">
+                                                            <img src={`${API_BASE}/api/dashboard/image/${issue.photo_id}`} alt="Evidence" style={{ height: '80px', width: '100px', borderRadius: '4px', border: '1px solid var(--glass-border)', objectFit: 'cover' }} />
+                                                        </a>
+                                                    </div>
+                                                )}
                                             </td>
                                             <td>
                                                 <select
@@ -287,6 +301,13 @@ export default function Dashboard() {
                                                 <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>
                                                     {s.suggestion || 'No suggestion provided'}
                                                 </div>
+                                                {s.photo_id && (
+                                                    <div style={{ marginTop: '8px' }}>
+                                                        <a href={`${API_BASE}/api/dashboard/image/${s.photo_id}`} target="_blank" rel="noreferrer">
+                                                            <img src={`${API_BASE}/api/dashboard/image/${s.photo_id}`} alt="Evidence" style={{ height: '80px', width: '100px', borderRadius: '4px', border: '1px solid var(--glass-border)', objectFit: 'cover' }} />
+                                                        </a>
+                                                    </div>
+                                                )}
                                             </td>
                                             <td>
                                                 <select
@@ -331,7 +352,16 @@ export default function Dashboard() {
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{v.id}</td>
                                             <td style={{ fontWeight: 600 }}>{v.name.toUpperCase()}</td>
                                             <td>BOOTH {v.booth}</td>
-                                            <td style={{ fontWeight: 700, color: 'var(--brand-surge)' }}>{v.role.toUpperCase()}</td>
+                                            <td style={{ fontWeight: 700, color: 'var(--brand-surge)' }}>
+                                                {v.role.toUpperCase()}
+                                                {v.photo_id && (
+                                                    <div style={{ marginTop: '8px' }}>
+                                                        <a href={`${API_BASE}/api/dashboard/image/${v.photo_id}`} target="_blank" rel="noreferrer">
+                                                            <img src={`${API_BASE}/api/dashboard/image/${v.photo_id}`} alt="Attachment" style={{ height: '40px', width: 'auto', borderRadius: '4px', border: '1px solid var(--glass-border)', objectFit: 'cover' }} />
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td>
                                                 <select
                                                     className="status-select"
