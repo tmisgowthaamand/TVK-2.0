@@ -135,6 +135,13 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
              # If they type something else, just take them to main menu
              session["state"] = "MAIN_MENU" 
              await send_main_menu(phone, session)
+    elif state == "MAIN_MENU":
+        if incoming_text and incoming_text.lower() == "btn_activity_report":
+             await handle_main_menu(phone, "internal_summary", session)
+        elif incoming_text and incoming_text.lower() == "btn_track_ref":
+             await handle_main_menu(phone, "internal_track", session)
+        else:
+             await handle_main_menu(phone, incoming_text, session)
     elif state == "DONE":
         await send_loop_prompt(phone, session)
     else:
@@ -245,8 +252,7 @@ We are documenting concerns so that future priorities are shaped by real people 
                 {"id": "menu_2", "title": "💡 Ideas & Improvements"},
                 {"id": "menu_3", "title": "🤝 Participate"},
                 {"id": "menu_4", "title": "📢 Stay Informed"},
-                {"id": "menu_5", "title": "🔍 Track My Issue"},
-                {"id": "menu_6", "title": "📋 My Activity"}
+                {"id": "menu_5", "title": "📋 Tracking & Activity"}
             ]
         },
         {
@@ -255,6 +261,7 @@ We are documenting concerns so that future priorities are shaped by real people 
                 {"id": "menu_7", "title": "📊 Booth Pulse"},
                 {"id": "menu_8", "title": "📸 Photo Evidence"},
                 {"id": "menu_9", "title": "🌐 TVK Networks"},
+                {"id": "menu_10", "title": "📞 Ward Connect"},
                 {"id": "menu_11", "title": "🗣️ Invite a Voter"}
             ]
         }
@@ -324,19 +331,26 @@ _Click the link above to start a voice call or chat._"""
         body = "Please share your location (Pin or Live Location) to receive updates specific to your area.\n\nYou may also type SKIP or use the button below."
         send_button_message(phone, body, [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
         
-    elif "5" in sel or "track" in sel or "menu_5" in sel:
-        session["state"] = "FLOW5_REF"
-        send_image_message(phone, IMG_URLS["track_submission"], "🔍 Track Your Submission\n\nPlease enter your Reference ID to check the current status.\nYour Reference ID was shared when you first submitted.\n\nExamples: GRV12345, SUG67890, VOL11223")
+    elif "5" in sel or "tracking" in sel or "activity" in sel or "menu_5" in sel or "menu_6" in sel:
+        msg = f"📋 *Member Dashboard — {session['name']}*\n\nYour one-stop view for trackers and summaries:"
+        buttons = [
+            {"id": "btn_activity_report", "title": "📊 Activity Report"},
+            {"id": "btn_track_ref", "title": "🔍 Track Status"}
+        ]
+        send_button_message(phone, msg, buttons, IMG_URLS["track_submission"])
 
-    elif "6" in sel or "activity" in sel or "menu_6" in sel:
-        # Load real data from mongodb 2 - supporting both schemas
+
+    elif "internal_track" in sel:
+        session["state"] = "FLOW5_REF"
+        send_image_message(phone, IMG_URLS["track_submission"], "🔍 Track Your Submission\n\nPlease enter your Reference ID to check the current status.\nExample: GRV12345")
+
+    elif "internal_summary" in sel:
+        # Load real data from mongodb 2
         issues_raised = await grievances_col.count_documents({"phoneNumber": phone}) or await grievances_col.count_documents({"voter_phone": phone})
         issues_open = await grievances_col.count_documents({"$and": [{"status": "Open"}, {"$or": [{"phoneNumber": phone}, {"voter_phone": phone}]}]})
         issues_prog = await grievances_col.count_documents({"$and": [{"status": "In Progress"}, {"$or": [{"phoneNumber": phone}, {"voter_phone": phone}]}]})
         issues_res = await grievances_col.count_documents({"$and": [{"status": "Resolved"}, {"$or": [{"phoneNumber": phone}, {"voter_phone": phone}]}]})
-        
         sugg_count = await member_requests_col.count_documents({"$and": [{"$or": [{"type": "Suggestion"}, {"referenceId": {"$regex": "^MBR"}}]}, {"$or": [{"phoneNumber": phone}, {"voter_phone": phone}]}]})
-        
         vol_req = await member_requests_col.find_one({"$and": [{"type": "Volunteer"}, {"$or": [{"phoneNumber": phone}, {"voter_phone": phone}]}]})
         vol_status = "Registered" if vol_req else "None"
         vol_role_raw = vol_req.get("role", "N/A") if vol_req else "N/A"
@@ -354,12 +368,10 @@ _Click the link above to start a voice call or chat._"""
 🤝 Volunteer: {vol_status}
 └ Role: {vol_role}
 
-📢 Updates: Subscribed
-
-📊 Booth Pulse: Voted
-───────────────
-Thank you for being an active voice in shaping Kavundampalayam.""")
+ Booth Pulse: Voted
+───────────────""")
         await send_loop_prompt(phone, session)
+
         
     elif "7" in sel or "pulse" in sel or "menu_7" in sel:
         session["state"] = "FLOW7_POLL"
