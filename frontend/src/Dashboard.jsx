@@ -194,6 +194,7 @@ export default function Dashboard() {
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
                                         <th>Booth</th>
+                                        <th>EPIC / Voter ID</th>
                                         <th>Category</th>
                                         <th>Issue Description</th>
                                         <th>Status Control</th>
@@ -206,6 +207,13 @@ export default function Dashboard() {
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{issue.id}</td>
                                             <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
                                             <td>{issue.booth}</td>
+                                            <td>
+                                                {issue.epic ? (
+                                                    <span style={{ fontWeight: 700, color: 'var(--text-vivid)' }}>{issue.epic}</span>
+                                                ) : (
+                                                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#e50914' }}>GUEST / UNVERIFIED</span>
+                                                )}
+                                            </td>
                                             <td>{issue.category}</td>
                                             <td style={{ maxWidth: '300px', verticalAlign: 'top' }}>
                                                 <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>

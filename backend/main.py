@@ -70,6 +70,7 @@ async def get_grievances():
         results.append({
             "id": ref_id,
             "name": voter_name,
+            "epic": i.get("epic") or "",
             "booth": str(i.get("booth") or i.get("partNumber") or "Unknown"),
             "category": CAT_MAP.get(cat_raw, cat_raw),
             "status": i.get("status", "Open"),
@@ -90,6 +91,7 @@ async def get_all_grievances():
         results.append({
             "id": ref_id,
             "name": voter_name,
+            "epic": i.get("epic") or "",
             "booth": str(i.get("booth") or i.get("partNumber") or ""),
             "category": CAT_MAP.get(cat_raw, cat_raw),
             "status": i.get("status", "Open"),

@@ -560,6 +560,8 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
 
     today = datetime.datetime.now().strftime("%d %b %Y")
 
+    epic_to_save = session.get('epic') or session.get('epic_unverified')
+
     if flow == "FLOW1":
         ref_id = f"GRV{random.randint(10000, 99999)}"
         # Save to DB
@@ -568,6 +570,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             "voter_phone": phone,
             "voter_name": session.get('name', 'Anonymous'),
             "booth": session.get('booth', 'Unknown'),
+            "epic": epic_to_save,
             "category": session.get('cat', 'Others'),
             "description": session.get('desc', ''),
             "status": "Open",
@@ -595,6 +598,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             "voter_phone": phone,
             "voter_name": session.get('name', 'Anonymous'),
             "booth": session.get('booth', 'Unknown'),
+            "epic": epic_to_save,
             "suggestion": session.get('sugg', ''),
             "status": "Pending",
             "timestamp": today,
@@ -620,6 +624,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             "voter_phone": phone,
             "voter_name": session.get('name', 'Anonymous'),
             "booth": session.get('booth', 'Unknown'),
+            "epic": epic_to_save,
             "role": session.get('vol_role', 'General'),
             "status": "Registered",
             "timestamp": today,
@@ -653,6 +658,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             "voter_phone": phone,
             "voter_name": session.get('name', 'Anonymous'),
             "booth": session.get('booth', 'Unknown'),
+            "epic": epic_to_save,
             "category": session.get('photo_cat', 'Others'),
             "description": session.get('photo_desc', ''),
             "status": "Open",
