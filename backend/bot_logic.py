@@ -257,7 +257,8 @@ We are documenting concerns so that future priorities are shaped by real people 
         {
             "title": "My Account",
             "rows": [
-                {"id": "menu_5", "title": "📋 Tracking & Activity"}
+                {"id": "menu_5", "title": "🔍 Track My Issue"},
+                {"id": "menu_6", "title": "📋 My Activity"}
             ]
         },
         {
@@ -265,8 +266,7 @@ We are documenting concerns so that future priorities are shaped by real people 
             "rows": [
                 {"id": "menu_7", "title": "📊 Booth Pulse"},
                 {"id": "menu_8", "title": "📸 Photo Evidence"},
-                {"id": "menu_9", "title": "🌐 TVK Networks"},
-                {"id": "menu_11", "title": "👥 Invite a Voter"},
+                {"id": "menu_9", "title": "🌐 Movement & Networks"},
                 {"id": "menu_10", "title": "📞 Ward Connect"}
             ]
         }
@@ -341,13 +341,13 @@ _Click the link above to start a voice call or chat._"""
         body = "Please share your location (Pin or Live Location) to receive updates specific to your area.\n\nYou may also type SKIP or use the button below."
         send_button_message(phone, body, [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
         
-    elif sel == "menu_5" or "tracking" in sel or "activity" in sel:
-        msg = f"📋 *Member Dashboard — {session['name']}*\n\nYour one-stop view for trackers and summaries:"
-        buttons = [
-            {"id": "btn_activity_report", "title": "📊 Activity Report"},
-            {"id": "btn_track_ref", "title": "🔍 Track Status"}
-        ]
-        send_button_message(phone, msg, buttons, IMG_URLS["track_submission"])
+    elif sel == "menu_5" or "track" in sel:
+        session["state"] = "FLOW5_REF"
+        send_image_message(phone, IMG_URLS["track_submission"], "🔍 *Track Your Submission*\n\nPlease enter your Reference ID to check the current status.\n_Example: GRV12345_")
+
+    elif sel == "menu_6" or "activity" in sel:
+        # Directly trigger activity summary logic
+        await handle_main_menu(phone, "internal_summary", session)
 
 
     elif "internal_track" in sel:
@@ -409,11 +409,11 @@ _Click the link above to start a voice call or chat._"""
 
     elif sel == "menu_9" or "network" in sel:
         session["state"] = "FLOW9_NETWORKS"
-        msg = "🌐 *TVK Networks & Portals*\n\nExplore our digital initiatives:"
+        msg = "🌐 *TVK Movement & Networks*\n\nExplore our digital initiatives or invite others to join the cause:"
         send_button_message(phone, msg, [
             {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
-            {"id": "btn_main_menu", "title": "🏠 Main Menu"}
+            {"id": "btn_invite", "title": "👥 Invite Voter"}
         ], IMG_URLS["welcome_banner"])
         
     else:
