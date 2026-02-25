@@ -275,7 +275,12 @@ We are documenting concerns so that future priorities are shaped by real people 
 
 async def handle_main_menu(phone, text, session):
     sel = text.lower() if text else ""
-    if "10" in sel or "ward" in sel or "menu_10" in sel:
+    
+    if sel == "menu_11" or "btn_invite" in sel:
+        # Prioritize Invite click to avoid shadowing
+        await handle_flow9_networks(phone, "btn_invite", session)
+
+    elif "menu_10" in sel or "ward" in sel:
         booth = session.get('booth', 'Unknown')
         name = "Suresh Murugan"
         phone_num = "+919876543210"
@@ -298,7 +303,7 @@ _Click the link above to start a voice call or chat._"""
         send_button_message(phone, "Would you like to explore other options?", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], None)
         session["state"] = "LOOP_PROMPT"
 
-    elif "1" in sel or "issue" in sel or "report" in sel or "menu_1" in sel:
+    elif sel == "menu_1" or ("report" in sel and "issue" in sel):
         session["state"] = "FLOW1_CAT"
         sections = [{"title": "Categories", "rows": [
             {"id": "cat_1", "title": "Water & Drainage"},
@@ -315,12 +320,12 @@ _Click the link above to start a voice call or chat._"""
         msg = f"Thank you, {session['name']}.\nPlease select the area where you are facing a concern:"
         send_list_message(phone, msg, "Select Category", sections, "📝 Report an Issue")
         
-    elif "2" in sel or "idea" in sel or "improve" in sel or "menu_2" in sel:
+    elif sel == "menu_2" or "idea" in sel or "improve" in sel:
         session["state"] = "FLOW2_SUGG"
         msg = "We believe strong constituencies are built not just by solving issues, but by listening to constructive ideas.\n\nPlease share your suggestion in up to 250 characters."
         send_image_message(phone, IMG_URLS["desc_banner"], msg)
     
-    elif "3" in sel or "participate" in sel or "menu_3" in sel:
+    elif sel == "menu_3" or "participate" in sel:
         session["state"] = "FLOW3_MODE"
         msg = f"🤝 Participate\n\nThat's encouraging to hear, {session['name']}.\nHow would you like to participate?"
         sections = [{"title": "Roles", "rows": [
@@ -331,12 +336,12 @@ _Click the link above to start a voice call or chat._"""
         ]}]
         send_list_message(phone, msg, "Select Mode", sections)
         
-    elif "4" in sel or "informed" in sel or "menu_4" in sel:
+    elif sel == "menu_4" or "informed" in sel:
         session["state"] = "FLOW4_LOC"
         body = "Please share your location (Pin or Live Location) to receive updates specific to your area.\n\nYou may also type SKIP or use the button below."
         send_button_message(phone, body, [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
         
-    elif "5" in sel or "tracking" in sel or "activity" in sel or "menu_5" in sel or "menu_6" in sel:
+    elif sel == "menu_5" or "tracking" in sel or "activity" in sel:
         msg = f"📋 *Member Dashboard — {session['name']}*\n\nYour one-stop view for trackers and summaries:"
         buttons = [
             {"id": "btn_activity_report", "title": "📊 Activity Report"},
@@ -378,7 +383,7 @@ _Click the link above to start a voice call or chat._"""
         await send_loop_prompt(phone, session)
 
         
-    elif "7" in sel or "pulse" in sel or "menu_7" in sel:
+    elif sel == "menu_7" or "pulse" in sel:
         session["state"] = "FLOW7_POLL"
         msg = "📊 Booth Pulse — Quick Poll\n\nHelp us understand the biggest concern in your area right now.\nWhat is the #1 issue affecting your daily life?"
         sections = [{"title": "Options", "rows": [
@@ -389,7 +394,7 @@ _Click the link above to start a voice call or chat._"""
         ]}]
         send_list_message(phone, msg, "Vote Now", sections)
         
-    elif "8" in sel or "photo" in sel or "menu_8" in sel:
+    elif sel == "menu_8" or "photo" in sel:
         session["state"] = "FLOW8_CAT"
         msg = "📸 Submit Photo Evidence\n\nYou can send a photo of any local issue — broken road, garbage dump, water leakage, damaged public property, etc.\n\nFirst, select the category:"
         sections = [{"title": "Categories", "rows": [
@@ -402,18 +407,14 @@ _Click the link above to start a voice call or chat._"""
         ]}]
         send_list_message(phone, msg, "Select Category", sections)
 
-    elif "9" in sel or "invite" in sel or "network" in sel or "menu_9" in sel:
+    elif sel == "menu_9" or "network" in sel:
         session["state"] = "FLOW9_NETWORKS"
-        msg = "🌐 *TVK Networks & Portals*\n\nExplore our digital initiatives or invite others to join the movement:"
+        msg = "🌐 *TVK Networks & Portals*\n\nExplore our digital initiatives:"
         send_button_message(phone, msg, [
             {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
             {"id": "btn_main_menu", "title": "🏠 Main Menu"}
         ], IMG_URLS["welcome_banner"])
-
-    elif "11" in sel or "invite" in sel or "menu_11" in sel:
-        # Reuse flow 9 logic for invite button
-        await handle_flow9_networks(phone, "btn_invite", session)
         
     else:
         send_text_message(phone, "Please select a valid option from the menu.")
