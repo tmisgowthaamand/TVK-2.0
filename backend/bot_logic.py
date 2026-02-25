@@ -239,17 +239,12 @@ We are documenting concerns so that future priorities are shaped by real people 
     
     sections = [
         {
-            "title": "Core Services",
+            "title": "Main Services",
             "rows": [
                 {"id": "menu_1", "title": "🔴 Report Local Issue"},
                 {"id": "menu_2", "title": "💡 Ideas & Improvements"},
                 {"id": "menu_3", "title": "🤝 Participate"},
-                {"id": "menu_4", "title": "📢 Stay Informed"}
-            ]
-        },
-        {
-            "title": "My Account",
-            "rows": [
+                {"id": "menu_4", "title": "📢 Stay Informed"},
                 {"id": "menu_5", "title": "🔍 Track My Issue"},
                 {"id": "menu_6", "title": "📋 My Activity"}
             ]
@@ -260,7 +255,6 @@ We are documenting concerns so that future priorities are shaped by real people 
                 {"id": "menu_7", "title": "📊 Booth Pulse"},
                 {"id": "menu_8", "title": "📸 Photo Evidence"},
                 {"id": "menu_9", "title": "🌐 TVK Networks"},
-                {"id": "menu_10", "title": "📞 Ward Connect"},
                 {"id": "menu_11", "title": "🗣️ Invite a Voter"}
             ]
         }
