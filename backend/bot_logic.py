@@ -125,7 +125,7 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
             session["state"] = "MAIN_MENU"
             await send_main_menu(phone, session)
         else:
-            send_button_message(phone, "Please use the button below to continue.", [{"id": "btn_main_menu", "title": "🏠 Return to Main Menu"}], None)
+            send_button_message(phone, "Please use the button below to continue.", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], None)
             
     elif state == "DONE":
         send_loop_prompt(phone, session)
@@ -715,7 +715,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
 
 def send_loop_prompt(phone, session):
     session["state"] = "LOOP_PROMPT"
-    send_button_message(phone, "What would you like to do next?", [{"id": "btn_main_menu", "title": "🏠 Return to Main Menu"}])
+    send_button_message(phone, "What would you like to do next?", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}])
 
 async def handle_flow9_networks(phone, text, session):
     sel = text.lower() if text else ""
@@ -734,7 +734,7 @@ async def handle_flow9_networks(phone, text, session):
         send_loop_prompt(phone, session)
     else:
         send_button_message(phone, "Please select an option.", [
-            {"id": "btn_tvk_family", "title": "👨‍\u200d👩‍\u200d👧‍\u200d👦 TVK Family"},
+            {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
             {"id": "btn_invite", "title": "👥 Invite a Voter"}
         ], None)
