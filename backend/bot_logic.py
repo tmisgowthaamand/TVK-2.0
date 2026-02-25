@@ -260,7 +260,8 @@ We are documenting concerns so that future priorities are shaped by real people 
                 {"id": "menu_7", "title": "📊 Booth Pulse"},
                 {"id": "menu_8", "title": "📸 Photo Evidence"},
                 {"id": "menu_9", "title": "🌐 TVK Networks"},
-                {"id": "menu_10", "title": "📞 Ward Connect"}
+                {"id": "menu_10", "title": "📞 Ward Connect"},
+                {"id": "menu_11", "title": "🗣️ Invite a Voter"}
             ]
         }
     ]
@@ -398,6 +399,10 @@ Thank you for being an active voice in shaping Kavundampalayam.""")
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
             {"id": "btn_main_menu", "title": "🏠 Main Menu"}
         ], IMG_URLS["welcome_banner"])
+
+    elif "11" in sel or "invite" in sel or "menu_11" in sel:
+        # Reuse flow 9 logic for invite button
+        await handle_flow9_networks(phone, "btn_invite", session)
         
     else:
         send_text_message(phone, "Please select a valid option from the menu.")
