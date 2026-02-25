@@ -531,6 +531,15 @@ async def handle_post_flow_epic(phone, text, session):
             session["epic"] = epic
         else:
             session["epic_unverified"] = epic
+            # Insert this new unverified record into DB1
+            await voters_collection.insert_one({
+                "voterId": epic,
+                "name": "Unknown (Guest)",
+                "partNumber": "Pending",
+                "phone": phone,
+                "status": "Unverified",
+                "source": "WhatsApp Bot"
+            })
             send_text_message(phone, "We recorded your input. Continuing to log your request...")
     
     # Mark that we bypassed the post-flow check
