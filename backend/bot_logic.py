@@ -121,14 +121,11 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         await handle_flow9_networks(phone, incoming_text, session)
         
     elif state == "LOOP_PROMPT":
-        if incoming_text and incoming_text.lower() == "btn_main_menu":
-            session["state"] = "MAIN_MENU"
-            await send_main_menu(phone, session)
-        else:
-            send_button_message(phone, "Please use the button below to continue.", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], None)
+        session["state"] = "MAIN_MENU"
+        await send_main_menu(phone, session)
             
     elif state == "DONE":
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
     else:
         # Fallback
         sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
@@ -280,7 +277,7 @@ https://wa.me/{phone_num.replace('+', '')}
 
 _Click the link above to start a voice call or chat._"""
         send_image_message(phone, IMG_URLS["ward_connect"], msg)
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
 
     elif "1" in sel or "issue" in sel or "report" in sel or "menu_1" in sel:
         session["state"] = "FLOW1_CAT"
@@ -355,7 +352,7 @@ _Click the link above to start a voice call or chat._"""
 📊 Booth Pulse: Voted
 ───────────────
 Thank you for being an active voice in shaping Kavundampalayam.""")
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
         
     elif "7" in sel or "pulse" in sel or "menu_7" in sel:
         session["state"] = "FLOW7_POLL"
@@ -462,7 +459,7 @@ async def handle_flow5_ref(phone, text, session):
 Your submission is on file. Our team will follow up as needed.""")
     else:
         send_text_message(phone, f"We could not find any record matching {ref}.\n\nPlease double-check your Reference ID and try again.")
-    send_loop_prompt(phone, session)
+    await send_loop_prompt(phone, session)
 
 async def handle_flow7_poll(phone, text, session):
     sel = text.lower() if text else ""
@@ -488,7 +485,7 @@ async def handle_flow7_poll(phone, text, session):
             if time_diff < 1800:
                 mins_left = int((1800 - time_diff) / 60)
                 send_image_message(phone, IMG_URLS["booth_cooldown"], f"📊 *Booth Pulse - Cool-down*\n\nYour voice has been recorded recently. To keep the live results balanced, you can update your pulse again in *{mins_left} minutes*.\n\n_Stay tuned for live updates!_")
-                send_loop_prompt(phone, session)
+                await send_loop_prompt(phone, session)
                 return
         # If older than 30 mins, delete old vote to allow new one
         await booth_pulse_col.delete_one({"_id": existing["_id"]})
@@ -530,7 +527,7 @@ async def handle_flow7_poll(phone, text, session):
     
     send_image_message(phone, IMG_URLS["booth_results"], result_str)
 
-    send_loop_prompt(phone, session)
+    await send_loop_prompt(phone, session)
 
 def handle_flow8_cat(phone, text, session):
     session["photo_cat"] = text
@@ -710,28 +707,28 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             msg = f"✅ Photo Evidence Submitted!\n\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📸 Photo: Received\n🏛️ Booth: {session['booth']}"
             send_image_message(phone, IMG_URLS["success"], msg)
 
-    send_loop_prompt(phone, session)
+    await send_loop_prompt(phone, session)
 
 
-def send_loop_prompt(phone, session):
-    session["state"] = "LOOP_PROMPT"
-    send_button_message(phone, "What would you like to do next?", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}])
+async def send_loop_prompt(phone, session):
+    session["state"] = "MAIN_MENU"
+    await send_main_menu(phone, session)
 
 async def handle_flow9_networks(phone, text, session):
     sel = text.lower() if text else ""
     if "family" in sel or "btn_tvk_family" in sel:
         msg = "👨‍\u200d👩‍\u200d👧‍\u200d👦 *TVK Family*\n\nJoin our digital family and connect with fellow supporters across the globe!\n\nClick here to join 👉 https://tvk.family/"
         send_image_message(phone, IMG_URLS["welcome_banner"], msg)
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
     elif "itwing" in sel or "btn_tvk_itwing" in sel:
         msg = "💻 *TVK IT Wing*\n\nBe part of the digital vanguard leading the change! Join the IT Wing today.\n\nClick here to explore 👉 https://tvkitwing.com/"
         send_image_message(phone, IMG_URLS["welcome_banner"], msg)
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
     elif "invite" in sel or "btn_invite" in sel:
         send_image_message(phone, IMG_URLS["invite_1"], "👥 Spread the Word!\n\nHelp us build a stronger, more connected constituency. Forward the message below to your friends, family, and neighbours:")
         send_image_message(phone, IMG_URLS["invite_2"], """────────────────────\n🗳️ TVK Kavundampalayam — Voter Engagement Platform\n\nYour constituency. Your voice. Your future.\nJoin Venkatraman's official WhatsApp platform to:\n✅ Report local issues directly\n✅ Share ideas for development\n✅ Volunteer and participate\n✅ Get official campaign updates\n✅ Track your submitted issues\n\n👉 Send Hi to +91-XXXXXXXXXX on WhatsApp to get started.\n\nEvery voter's voice matters. Be heard.\nTVK — Kavundampalayam\n────────────────────""")
         send_image_message(phone, IMG_URLS["invite_3"], f"Your Referral Stats:\n\n👥 You have invited 3 voters so far.\n🏛️ Booth {session.get('booth', 'Unknown')} total participants: 47\n\nThank you for growing this movement, {session.get('name', 'Anonymous')}.")
-        send_loop_prompt(phone, session)
+        await send_loop_prompt(phone, session)
     else:
         send_button_message(phone, "Please select an option.", [
             {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
