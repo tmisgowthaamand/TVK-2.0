@@ -153,20 +153,35 @@ async def handle_ask_has_epic(phone, text, session):
         send_text_message(phone, "Please select an option using the buttons.")
 
 async def verify_epic(phone, epic, session):
-    voter = await voters_collection.find_one({"voterId": epic.upper()})
+    epic = epic.upper().strip()
+    
+    if len(epic) < 5 or len(epic) > 20:
+        msg = "We could not locate this EPIC number in our constituency records.\n\nPlease verify and enter a valid formatted EPIC. If you believe this is an error, you may contact your booth-level representative."
+        send_image_message(phone, IMG_URLS["epic_not_found"], msg)
+        return
+
+    voter = await voters_collection.find_one({"voterId": epic})
     if voter:
         name = voter.get("name", "Unknown Voter")
         booth = str(voter.get("partNumber", "Unknown"))
     else:
-        # Strict DB lookup - with visual banner
-        msg = "We could not locate this EPIC number in our constituency records.\n\nPlease verify and enter again. If you believe this is an error, you may contact your booth-level representative."
-        send_image_message(phone, IMG_URLS["epic_not_found"], msg)
-        return
+        name = "Unknown (Guest)"
+        booth = "Pending"
+        today = datetime.datetime.now().strftime("%d %b %Y")
+        await voters_collection.insert_one({
+            "voterId": epic,
+            "name": name,
+            "partNumber": booth,
+            "phone": phone,
+            "status": "Unverified",
+            "source": "WhatsApp Bot",
+            "createdAt": today
+        })
         
     session["state"] = "MAIN_MENU"
     session["name"] = name
     session["booth"] = booth
-    session["epic"] = epic.upper()
+    session["epic"] = epic
     await send_main_menu(phone, session)
 
 async def send_main_menu(phone, session):
@@ -174,12 +189,22 @@ async def send_main_menu(phone, session):
     booth = session.get("booth", "Not provided")
     epic = session.get("epic")
     
-    if epic:
+    if epic and name != "Unknown (Guest)" and name != "Citizen":
         text = f"""Thank you, *{name}*
 
 We have identified you as a voter from:
 📍 *Booth:* {booth}  🏛️ *Assembly:* Kavundampalayam
 🏛️ *Parliament:* Coimbatore
+
+We are documenting concerns booth-wise so that real priorities are shaped by people like you.
+This system is designed to ensure that each booth's voice is heard clearly and documented responsibly.
+
+*How would you like to engage today?*"""
+    elif epic:
+        text = f"""Thank you!
+
+We have recorded your Voter ID: *{epic}*.
+Your exact booth assignment is currently pending verification in our system.
 
 We are documenting concerns booth-wise so that real priorities are shaped by people like you.
 This system is designed to ensure that each booth's voice is heard clearly and documented responsibly.
