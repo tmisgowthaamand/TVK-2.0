@@ -121,9 +121,19 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         await handle_flow9_networks(phone, incoming_text, session)
         
     elif state == "LOOP_PROMPT":
-        session["state"] = "MAIN_MENU"
-        await send_main_menu(phone, session)
-            
+        if incoming_text and incoming_text.lower() == "btn_main_menu":
+            session["state"] = "MAIN_MENU"
+            await send_main_menu(phone, session)
+        elif incoming_text and ("ward" in incoming_text.lower() or "connect" in incoming_text.lower()):
+             # Trigger ward connect logic
+             await handle_main_menu(phone, "menu_10", session)
+        elif incoming_text and ("tvk" in incoming_text.lower() or "family" in incoming_text.lower() or "itwing" in incoming_text.lower() or "btn_tvk" in incoming_text.lower()):
+             # Directly handle the network selection
+             await handle_flow9_networks(phone, incoming_text, session)
+        else:
+             # If they type something else, just take them to main menu
+             session["state"] = "MAIN_MENU" 
+             await send_main_menu(phone, session)
     elif state == "DONE":
         await send_loop_prompt(phone, session)
     else:
@@ -277,7 +287,8 @@ https://wa.me/{phone_num.replace('+', '')}
 
 _Click the link above to start a voice call or chat._"""
         send_image_message(phone, IMG_URLS["ward_connect"], msg)
-        await send_loop_prompt(phone, session)
+        send_button_message(phone, "Would you like to explore other options?", [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], None)
+        session["state"] = "LOOP_PROMPT"
 
     elif "1" in sel or "issue" in sel or "report" in sel or "menu_1" in sel:
         session["state"] = "FLOW1_CAT"
@@ -382,9 +393,9 @@ Thank you for being an active voice in shaping Kavundampalayam.""")
         session["state"] = "FLOW9_NETWORKS"
         msg = "🌐 *TVK Networks & Portals*\n\nExplore our digital initiatives or invite others to join the movement:"
         send_button_message(phone, msg, [
-            {"id": "btn_tvk_family", "title": "👨‍👩‍👧‍👦 TVK Family"},
+            {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
-            {"id": "btn_invite", "title": "👥 Invite a Voter"}
+            {"id": "btn_main_menu", "title": "🏠 Main Menu"}
         ], IMG_URLS["welcome_banner"])
         
     else:
@@ -711,8 +722,23 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
 
 
 async def send_loop_prompt(phone, session):
-    session["state"] = "MAIN_MENU"
-    await send_main_menu(phone, session)
+    # Rotate between showing Ward Connect and TVK Networks
+    choice = random.choice(["ward", "network"])
+    
+    if choice == "ward":
+         booth = session.get('booth', 'Unknown')
+         name = "Suresh Murugan"
+         phone_num = "+919876543210"
+         msg = f"📞 *Ward Connect — Booth {booth}*\n\nYour designated Ward Coordinator is available for support:\n\n👤 {name}\n📍 Gandhi Nagar, Kavundampalayam\n\nDirect Call: https://wa.me/{phone_num.replace('+', '')}"
+         send_button_message(phone, msg, [{"id": "btn_main_menu", "title": "🏠 Main Menu"}], IMG_URLS["ward_connect"])
+    else:
+         msg = "🌐 *TVK Networks*\n\nExplore our digital initiatives:"
+         send_button_message(phone, msg, [
+            {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
+            {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"}
+        ], IMG_URLS["welcome_banner"])
+    
+    session["state"] = "LOOP_PROMPT"
 
 async def handle_flow9_networks(phone, text, session):
     sel = text.lower() if text else ""
@@ -733,5 +759,5 @@ async def handle_flow9_networks(phone, text, session):
         send_button_message(phone, "Please select an option.", [
             {"id": "btn_tvk_family", "title": "🌐 TVK Family"},
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
-            {"id": "btn_invite", "title": "👥 Invite a Voter"}
+            {"id": "btn_main_menu", "title": "🏠 Main Menu"}
         ], None)
