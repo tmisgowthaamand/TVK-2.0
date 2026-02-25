@@ -280,7 +280,7 @@ https://wa.me/{phone_num.replace('+', '')}
 
 _Click the link above to start a voice call or chat._"""
         send_image_message(phone, IMG_URLS["ward_connect"], msg)
-        session["state"] = "DONE"
+        send_loop_prompt(phone, session)
 
     elif "1" in sel or "issue" in sel or "report" in sel or "menu_1" in sel:
         session["state"] = "FLOW1_CAT"
@@ -354,8 +354,8 @@ _Click the link above to start a voice call or chat._"""
 
 📊 Booth Pulse: Voted
 ───────────────
-Thank you for being an active voice in shaping Kavundampalayam.\n\nSend Hi anytime to start again.""")
-        session["state"] = "DONE"
+Thank you for being an active voice in shaping Kavundampalayam.""")
+        send_loop_prompt(phone, session)
         
     elif "7" in sel or "pulse" in sel or "menu_7" in sel:
         session["state"] = "FLOW7_POLL"
@@ -459,10 +459,10 @@ async def handle_flow5_ref(phone, text, session):
 📅 Submitted: {date}
 ───────────────\n
 ⏳ Status: {record.get('status', 'Open')}\n
-Your submission is on file. Our team will follow up as needed.\n\nSend Hi anytime to start again.""")
+Your submission is on file. Our team will follow up as needed.""")
     else:
-        send_text_message(phone, f"We could not find any record matching {ref}.\n\nPlease double-check your Reference ID and try again.\n\nSend Hi anytime to start again.")
-    session["state"] = "DONE"
+        send_text_message(phone, f"We could not find any record matching {ref}.\n\nPlease double-check your Reference ID and try again.")
+    send_loop_prompt(phone, session)
 
 async def handle_flow7_poll(phone, text, session):
     sel = text.lower() if text else ""
@@ -488,7 +488,7 @@ async def handle_flow7_poll(phone, text, session):
             if time_diff < 1800:
                 mins_left = int((1800 - time_diff) / 60)
                 send_image_message(phone, IMG_URLS["booth_cooldown"], f"📊 *Booth Pulse - Cool-down*\n\nYour voice has been recorded recently. To keep the live results balanced, you can update your pulse again in *{mins_left} minutes*.\n\n_Stay tuned for live updates!_")
-                session["state"] = "DONE"
+                send_loop_prompt(phone, session)
                 return
         # If older than 30 mins, delete old vote to allow new one
         await booth_pulse_col.delete_one({"_id": existing["_id"]})
@@ -526,11 +526,11 @@ async def handle_flow7_poll(phone, text, session):
         bar = "█" * filled + "░" * (10 - filled)
         result_str += f"{label} {bar} {pct}% ({count} votes)\n"
         
-    result_str += f"\n🗳️ *Total Votes: {total} from Booth {booth}*\n\nThis data directly shapes our constituency priorities.\n\n_Send *Hi* anytime to start again._"
+    result_str += f"\n🗳️ *Total Votes: {total} from Booth {booth}*\n\nThis data directly shapes our constituency priorities."
     
     send_image_message(phone, IMG_URLS["booth_results"], result_str)
 
-    session["state"] = "DONE"
+    send_loop_prompt(phone, session)
 
 def handle_flow8_cat(phone, text, session):
     session["photo_cat"] = text
@@ -617,11 +617,11 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             doc["photo_id"] = session["photo_id"]
         await grievances_col.insert_one(doc)
 
-        msg = f"✅ Issue Successfully Logged\n🔖 Reference ID: {ref_id}\n\nOur field team will visit this spot soon to verify and solve the issue.\n\nStatus: Open -> Ward Follow-up\n\nSend Hi anytime to start again."
+        msg = f"✅ Issue Successfully Logged\n🔖 Reference ID: {ref_id}\n\nOur field team will visit this spot soon to verify and solve the issue.\n\nStatus: Open -> Ward Follow-up"
         send_image_message(phone, IMG_URLS["success"], msg)
         
         if not skipped:
-            final_thanks = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur field team will visit this spot soon to verify and solve the issue.\n\n*Our team will connect with you soon at your booth.*\n\n_Send *Hi* anytime to start again._"
+            final_thanks = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur field team will visit this spot soon to verify and solve the issue.\n\n*Our team will connect with you soon at your booth.*"
             send_image_message(phone, IMG_URLS["thank_you"], final_thanks)
         
     elif flow == "FLOW2":
@@ -645,7 +645,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         await member_requests_col.insert_one(doc)
 
         if not skipped:
-            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur team will review your suggestion for Kavundampalayam.\n\n*Our team will connect with you soon at your booth.*\n\n_Send *Hi* anytime to start again._"
+            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur team will review your suggestion for Kavundampalayam.\n\n*Our team will connect with you soon at your booth.*"
             send_image_message(phone, IMG_URLS["thank_you"], msg)
         else:
             msg = f"✅ Suggestion Officially Logged\n🔖 Reference ID: {ref_id}\n\nAll ideas are reviewed collectively to guide long-term planning for Kavundampalayam.\n\n*TVK Kavundampalayam Team*"
@@ -671,7 +671,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         await member_requests_col.insert_one(doc)
 
         if not skipped:
-            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur organiser from Booth {session.get('booth', 'Unknown')} will contact you with next steps.\n\n*Our team will connect with you soon at your booth.*\n\n_Send *Hi* anytime to start again._"
+            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur organiser from Booth {session.get('booth', 'Unknown')} will contact you with next steps.\n\n*Our team will connect with you soon at your booth.*"
             send_image_message(phone, IMG_URLS["thank_you"], msg)
         else:
             msg = f"✅ Volunteer Registration Complete\n🔖 Reference ID: {ref_id}\n\nThank you for stepping forward, {session.get('name', 'Anonymous')}. Our team will reach out to you soon.\n\n*TVK Kavundampalayam Team*"
@@ -679,7 +679,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
             
     elif flow == "FLOW4":
         if not skipped:
-            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\nYou will receive updates relevant to Booth {session.get('booth', 'Unknown')} and Kavundampalayam.\n\n*Our team will connect with you soon at your booth.*\n\n_Send *Hi* anytime to start again._"
+            msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\nYou will receive updates relevant to Booth {session.get('booth', 'Unknown')} and Kavundampalayam.\n\n*Our team will connect with you soon at your booth.*"
             send_image_message(phone, IMG_URLS["thank_you"], msg)
         else:
             msg = f"✅ Updates Subscribed\n\nYou will receive updates relevant to Booth {session.get('booth', 'Unknown')} and Kavundampalayam.\n\n*TVK Kavundampalayam Team*"
@@ -704,13 +704,13 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         await grievances_col.insert_one(doc)
 
         if not skipped:
-            msg = f"✅ Photo Evidence Submitted!\n\n───────────────\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📝 Description: {session.get('photo_desc', '')}\n📸 Photo: Received\n📍 Location: Main Road, Kavundampalayam\n🏛️ Booth: {session['booth']}\n📅 Submitted: {today}\n───────────────\n\nOur field team will inspect the spot and take necessary action.\n\nSend Hi anytime to start again."
+            msg = f"✅ Photo Evidence Submitted!\n\n───────────────\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📝 Description: {session.get('photo_desc', '')}\n📸 Photo: Received\n📍 Location: Main Road, Kavundampalayam\n🏛️ Booth: {session['booth']}\n📅 Submitted: {today}\n───────────────\n\nOur field team will inspect the spot and take necessary action."
             send_image_message(phone, IMG_URLS["success"], msg)
         else:
-            msg = f"✅ Photo Evidence Submitted!\n\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📸 Photo: Received\n🏛️ Booth: {session['booth']}\n\nSend Hi anytime to start again."
+            msg = f"✅ Photo Evidence Submitted!\n\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📸 Photo: Received\n🏛️ Booth: {session['booth']}"
             send_image_message(phone, IMG_URLS["success"], msg)
 
-    session["state"] = "DONE"
+    send_loop_prompt(phone, session)
 
 
 def send_loop_prompt(phone, session):
