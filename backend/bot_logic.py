@@ -58,7 +58,7 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
     
     cancel_keywords = ["hi", "hello", "start", "menu", "reset", "vanakkam"]
     if incoming_text and incoming_text.lower() in cancel_keywords:
-        sessions[phone] = {"state": "ASK_EPIC", "last_active": current_time}
+        sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
         send_welcome(phone)
         return
         
@@ -66,14 +66,16 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         session = None
         
     if not session:
-        sessions[phone] = {"state": "ASK_EPIC", "last_active": current_time}
+        sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
         send_welcome(phone)
         return
 
     state = session.get("state")
     session["last_active"] = current_time
 
-    if state == "ASK_EPIC":
+    if state == "ASK_HAS_EPIC":
+        await handle_ask_has_epic(phone, incoming_text, session)
+    elif state == "ASK_EPIC":
         await verify_epic(phone, incoming_text, session)
     elif state == "MAIN_MENU":
         await handle_main_menu(phone, incoming_text, session)
@@ -112,11 +114,14 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
     elif state == "FLOW8_LOC":
         await handle_loc_skip(phone, incoming_text, lat, lon, session, "FLOW8")
         
+    elif state == "POST_FLOW_EPIC":
+        await handle_post_flow_epic(phone, incoming_text, session)
+        
     elif state == "DONE":
         send_text_message(phone, "Please send Hi to restart to the main menu.")
     else:
         # Fallback
-        sessions[phone] = {"state": "ASK_EPIC", "last_active": current_time}
+        sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
         send_welcome(phone)
 
 def send_welcome(phone):
@@ -126,10 +131,26 @@ This is the official WhatsApp of Venkatraman, TVK Candidate – Kavundampalayam.
 
 We are building a structured, booth-level understanding of issues in this constituency so that future priorities are based on real voter input.
 
-To continue, please enter your EPIC number (Voter ID number).
+*Do you already have a Voter ID (EPIC number)?*"""
+    send_button_message(phone, msg, [
+        {"id": "btn_have_epic", "title": "✅ Have Voter ID"},
+        {"id": "btn_no_epic", "title": "❌ Don't Have"}
+    ], IMG_URLS["welcome_banner"])
 
-Example: ABC1234567"""
-    send_image_message(phone, IMG_URLS["welcome_banner"], msg)
+async def handle_ask_has_epic(phone, text, session):
+    text_lower = text.lower() if text else ""
+    if "btn_have_epic" in text_lower or "have" in text_lower or "yes" in text_lower:
+        session["state"] = "ASK_EPIC"
+        msg = "Please enter your EPIC number (Voter ID number).\n\nExample: ABC123456"
+        send_image_message(phone, IMG_URLS["welcome_banner"], msg)
+    elif "btn_no_epic" in text_lower or "don" in text_lower or "no" in text_lower:
+        session["state"] = "MAIN_MENU"
+        session["name"] = "Citizen"
+        session["booth"] = "Not provided yet"
+        session["epic"] = None
+        await send_main_menu(phone, session)
+    else:
+        send_text_message(phone, "Please select an option using the buttons.")
 
 async def verify_epic(phone, epic, session):
     voter = await voters_collection.find_one({"voterId": epic.upper()})
@@ -146,8 +167,15 @@ async def verify_epic(phone, epic, session):
     session["name"] = name
     session["booth"] = booth
     session["epic"] = epic.upper()
+    await send_main_menu(phone, session)
+
+async def send_main_menu(phone, session):
+    name = session.get("name", "Citizen")
+    booth = session.get("booth", "Not provided")
+    epic = session.get("epic")
     
-    text = f"""Thank you, *{name}*
+    if epic:
+        text = f"""Thank you, *{name}*
 
 We have identified you as a voter from:
 📍 *Booth:* {booth}  🏛️ *Assembly:* Kavundampalayam
@@ -155,6 +183,14 @@ We have identified you as a voter from:
 
 We are documenting concerns booth-wise so that real priorities are shaped by people like you.
 This system is designed to ensure that each booth's voice is heard clearly and documented responsibly.
+
+*How would you like to engage today?*"""
+    else:
+        text = f"""Welcome!
+
+While your Voter ID is pending, you can still participate! Every voice in Kavundampalayam matters.
+
+We are documenting concerns so that future priorities are shaped by real people like you.
 
 *How would you like to engage today?*"""
     
@@ -483,8 +519,44 @@ def handle_flow8_photo(phone, image_id, text, session):
     session["photo_desc"] = text
     send_button_message(phone, "Photo received. Now please share the location of this issue (Pin or Live Location).", [{"id": "skip_loc", "title": "SKIP"}], IMG_URLS["loc_banner"])
 
+async def handle_post_flow_epic(phone, text, session):
+    skipped_epic = (text and text.upper() in ["SKIP", "⏭️ SKIP", "SKIP_POST_EPIC"])
+    
+    if not skipped_epic and text:
+        epic = text.upper()
+        voter = await voters_collection.find_one({"voterId": epic})
+        if voter:
+            session["name"] = voter.get("name", "Unknown Voter")
+            session["booth"] = str(voter.get("partNumber", "Unknown"))
+            session["epic"] = epic
+        else:
+            session["epic_unverified"] = epic
+            send_text_message(phone, "We recorded your input. Continuing to log your request...")
+    
+    # Mark that we bypassed the post-flow check
+    session["post_flow_skipped"] = True
+    
+    lat = session.get("temp_lat")
+    lon = session.get("temp_lon")
+    skipped_loc = session.get("temp_skipped")
+    flow = session.get("temp_flow")
+    
+    dummy_text = "SKIP" if skipped_loc else None 
+    await handle_loc_skip(phone, dummy_text, lat, lon, session, flow)
+
 async def handle_loc_skip(phone, text, lat, lon, session, flow):
     skipped = (text and text.upper() == "SKIP") or (not lat and not lon)
+
+    # Intercept for guest users
+    if session.get("epic") is None and session.get("post_flow_skipped") is None:
+        session["temp_lat"] = lat
+        session["temp_lon"] = lon
+        session["temp_skipped"] = skipped
+        session["temp_flow"] = flow
+        session["state"] = "POST_FLOW_EPIC"
+        msg = "Thank you for providing the details!\n\nTo officially link this request to your profile, please enter your Voter ID (EPIC number) below.\n\nIf you still don't have it, you can skip this step and we will generate the ticket anyway."
+        send_button_message(phone, msg, [{"id": "skip_post_epic", "title": "⏭️ Skip"}], IMG_URLS["desc_banner"])
+        return
 
     today = datetime.datetime.now().strftime("%d %b %Y")
 
