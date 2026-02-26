@@ -117,6 +117,8 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         
     elif state == "POST_FLOW_EPIC":
         await handle_post_flow_epic(phone, incoming_text, session)
+    elif state == "POST_FLOW_NAME":
+        await handle_post_flow_name(phone, incoming_text, session)
         
     elif state == "FLOW9_NETWORKS":
         await handle_flow9_networks(phone, incoming_text, session)
@@ -575,25 +577,55 @@ async def handle_post_flow_epic(phone, text, session):
     
     if not skipped_epic and text:
         epic = text.upper()
-        voter = await voters_collection.find_one({"voterId": epic})
-        if voter:
-            session["name"] = voter.get("name", "Unknown Voter")
-            session["booth"] = str(voter.get("partNumber", "Unknown"))
-            session["epic"] = epic
-        else:
-            session["epic_unverified"] = epic
-            today = datetime.datetime.now().strftime("%d %b %Y")
-            # Insert this new unverified record into DB1
-            await voters_collection.insert_one({
-                "voterId": epic,
-                "name": "Unknown (Guest)",
-                "partNumber": "Pending",
-                "phone": phone,
-                "status": "Unverified",
-                "source": "WhatsApp Bot",
-                "createdAt": today
-            })
-            send_text_message(phone, "We recorded your input. Continuing to log your request...")
+        # Save epic temporarily and ask for name before modifying DB
+        session["temp_epic"] = epic
+        session["state"] = "POST_FLOW_NAME"
+        msg = "Please enter your full Name as per your Voter ID."
+        send_button_message(phone, msg, [{"id": "skip_post_name", "title": "⏭️ Skip"}], IMG_URLS["desc_banner"])
+        return
+    
+    # If they skipped the EPIC step entirely
+    session["post_flow_skipped"] = True
+    
+    lat = session.get("temp_lat")
+    lon = session.get("temp_lon")
+    skipped_loc = session.get("temp_skipped")
+    flow = session.get("temp_flow")
+    
+    dummy_text = "SKIP" if skipped_loc else None 
+    await handle_loc_skip(phone, dummy_text, lat, lon, session, flow)
+
+async def handle_post_flow_name(phone, text, session):
+    skipped_name = (text and text.upper() in ["SKIP", "⏭️ SKIP", "SKIP_POST_NAME"])
+    epic = session.get("temp_epic")
+    name = "Unknown (Guest)"
+    
+    if not skipped_name and text:
+        name = text.strip()
+        
+    voter = await voters_collection.find_one({"voterId": epic})
+    if voter:
+        name_to_use = name if not skipped_name else voter.get("name", "Unknown Voter")
+        session["name"] = name_to_use
+        session["booth"] = str(voter.get("partNumber", "Unknown"))
+        session["epic"] = epic
+        # Optionally update name in DB if they provided a new one
+        if not skipped_name and name_to_use != "Unknown (Guest)":
+            await voters_collection.update_one({"voterId": epic}, {"$set": {"name": name_to_use}})
+    else:
+        session["epic_unverified"] = epic
+        session["name"] = name if not skipped_name else "Unknown (Guest)"
+        today = datetime.datetime.now().strftime("%d %b %Y")
+        await voters_collection.insert_one({
+            "voterId": epic,
+            "name": session["name"],
+            "partNumber": "Pending",
+            "phone": phone,
+            "status": "Unverified",
+            "source": "WhatsApp Bot",
+            "createdAt": today
+        })
+        send_text_message(phone, "We recorded your input. Continuing to log your request...")
     
     # Mark that we bypassed the post-flow check
     session["post_flow_skipped"] = True
