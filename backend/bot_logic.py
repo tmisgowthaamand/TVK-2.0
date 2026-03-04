@@ -183,7 +183,7 @@ async def verify_epic(phone, epic, session):
     epic = epic.upper().strip()
     
     if len(epic) < 5 or len(epic) > 20:
-        msg = "We could not locate this EPIC number in our constituency records.\n\nPlease verify and enter a valid formatted EPIC. If you believe this is an error, you may contact your booth-level representative."
+        msg = "We could not locate this EPIC number in our constituency records.\n\nPlease enter correct EPIC number."
         send_image_message(phone, IMG_URLS["epic_not_found"], msg)
         return
 
@@ -191,25 +191,16 @@ async def verify_epic(phone, epic, session):
     if voter:
         name = voter.get("name", "Unknown Voter")
         booth = str(voter.get("partNumber", "Unknown"))
-    else:
-        name = "Unknown (Guest)"
-        booth = "Pending"
-        today = datetime.datetime.now().strftime("%d %b %Y")
-        await voters_collection.insert_one({
-            "voterId": epic,
-            "name": name,
-            "partNumber": booth,
-            "phone": phone,
-            "status": "Unverified",
-            "source": "WhatsApp Bot",
-            "createdAt": today
-        })
         
-    session["state"] = "MAIN_MENU"
-    session["name"] = name
-    session["booth"] = booth
-    session["epic"] = epic
-    await send_main_menu(phone, session)
+        session["state"] = "MAIN_MENU"
+        session["name"] = name
+        session["booth"] = booth
+        session["epic"] = epic
+        await send_main_menu(phone, session)
+    else:
+        msg = "No matching database stored data.\n\nPlease enter correct EPIC number."
+        send_image_message(phone, IMG_URLS["epic_not_found"], msg)
+        return
 
 async def send_main_menu(phone, session):
     name = session.get("name", "Citizen")
