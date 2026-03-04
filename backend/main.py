@@ -219,6 +219,22 @@ async def update_status(request: Request):
         
     return {"status": "success"}
 
+@app.delete("/api/dashboard/delete/{item_type}/{item_id}")
+async def delete_record(item_type: str, item_id: str):
+    if item_type == "voter":
+        result = await voters_collection.delete_one({"voterId": item_id})
+    elif item_type == "grievance":
+        result = await grievances_col.delete_one({"$or": [{"ref_id": item_id}, {"ticketId": item_id}]})
+    elif item_type == "suggestion" or item_type == "volunteer":
+        result = await member_requests_col.delete_one({"$or": [{"ref_id": item_id}, {"referenceId": item_id}]})
+    else:
+        raise HTTPException(status_code=400, detail="Unknown item type")
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+        
+    return {"status": "success", "message": "Record deleted"}
+
 @app.get("/webhook")
 async def verify_webhook(request: Request):
     query_params = request.query_params

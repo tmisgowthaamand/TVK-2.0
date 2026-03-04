@@ -9,7 +9,8 @@ import {
     Clock,
     Shield,
     LogOut,
-    Camera
+    Camera,
+    Trash2
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
@@ -74,6 +75,42 @@ export default function Dashboard() {
             })
             .catch(err => {
                 console.error("Error updating status", err);
+            });
+    };
+
+    const handleDelete = (type, id) => {
+        if (!window.confirm("Are you sure you want to delete this record?")) return;
+
+        // Optimistic UI updates
+        if (type === 'grievance') {
+            setGrievances(prev => prev.filter(item => item.id !== id));
+            setAllGrievances(prev => prev.filter(item => item.id !== id));
+        } else if (type === 'suggestion') {
+            setSuggestions(prev => prev.filter(item => item.id !== id));
+        } else if (type === 'volunteer') {
+            setVolunteers(prev => prev.filter(item => item.id !== id));
+        } else if (type === 'voter') {
+            setVoters(prev => prev.filter(item => item.id !== id));
+        }
+
+        axios.delete(`${API_BASE}/api/dashboard/delete/${type}/${id}`)
+            .then(() => {
+                // Refresh data to be sure
+                if (type === 'grievance') {
+                    axios.get(`${API_BASE}/api/dashboard/grievances`).then(res => setGrievances(res.data.grievances));
+                    axios.get(`${API_BASE}/api/dashboard/all_grievances`).then(res => setAllGrievances(res.data.grievances));
+                } else if (type === 'suggestion') {
+                    axios.get(`${API_BASE}/api/dashboard/suggestions`).then(res => setSuggestions(res.data.suggestions));
+                } else if (type === 'volunteer') {
+                    axios.get(`${API_BASE}/api/dashboard/volunteers`).then(res => setVolunteers(res.data.volunteers));
+                } else if (type === 'voter') {
+                    axios.get(`${API_BASE}/api/dashboard/voters`).then(res => setVoters(res.data.voters));
+                }
+            })
+            .catch(err => {
+                console.error("Error deleting record", err);
+                alert("Failed to delete record");
+                // Let optimistic update persist unless user refreshes, or we could revert here
             });
     };
 
@@ -155,6 +192,7 @@ export default function Dashboard() {
                                         <th>Issue Description</th>
                                         <th>Status</th>
                                         <th>Date Logged</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -194,6 +232,11 @@ export default function Dashboard() {
                                                 </span>
                                             </td>
                                             <td style={{ fontSize: '12px', color: 'var(--text-dim)' }}>{issue.date}</td>
+                                            <td>
+                                                <button onClick={() => handleDelete('grievance', issue.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e50914' }} title="Delete Record">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -218,6 +261,7 @@ export default function Dashboard() {
                                         <th>Issue Description</th>
                                         <th>Status Control</th>
                                         <th>Date Logged</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -268,6 +312,11 @@ export default function Dashboard() {
                                                 </select>
                                             </td>
                                             <td>{issue.date}</td>
+                                            <td>
+                                                <button onClick={() => handleDelete('grievance', issue.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e50914' }} title="Delete Record">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -289,6 +338,7 @@ export default function Dashboard() {
                                         <th>Strategic Suggestion</th>
                                         <th>Review Status</th>
                                         <th>Logged</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -323,6 +373,11 @@ export default function Dashboard() {
                                                 </select>
                                             </td>
                                             <td style={{ whiteSpace: 'nowrap' }}>{s.date}</td>
+                                            <td>
+                                                <button onClick={() => handleDelete('suggestion', s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e50914' }} title="Delete Record">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -344,6 +399,7 @@ export default function Dashboard() {
                                         <th>Specialized Role</th>
                                         <th>Deployment Status</th>
                                         <th>Onboarded</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -376,6 +432,11 @@ export default function Dashboard() {
                                                 </select>
                                             </td>
                                             <td>{v.date}</td>
+                                            <td>
+                                                <button onClick={() => handleDelete('volunteer', v.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e50914' }} title="Delete Record">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -396,6 +457,7 @@ export default function Dashboard() {
                                         <th>Electoral Sector</th>
                                         <th>District</th>
                                         <th>Registry Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -410,6 +472,11 @@ export default function Dashboard() {
                                                     <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
                                                     {v.status.toUpperCase()}
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <button onClick={() => handleDelete('voter', v.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e50914' }} title="Delete Record">
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
