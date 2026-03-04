@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import Swal from 'sweetalert2';
 
 export default function Dashboard() {
     const { currentUser, logout } = useAuth();
@@ -78,8 +79,18 @@ export default function Dashboard() {
             });
     };
 
-    const handleDelete = (type, id) => {
-        if (!window.confirm("Are you sure you want to delete this record?")) return;
+    const handleDelete = async (type, id) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e50914',
+            cancelButtonColor: '#3d3d3d',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (!result.isConfirmed) return;
 
         // Optimistic UI updates
         if (type === 'grievance') {
@@ -93,25 +104,37 @@ export default function Dashboard() {
             setVoters(prev => prev.filter(item => item.id !== id));
         }
 
-        axios.delete(`${API_BASE}/api/dashboard/delete/${type}/${id}`)
-            .then(() => {
-                // Refresh data to be sure
-                if (type === 'grievance') {
-                    axios.get(`${API_BASE}/api/dashboard/grievances`).then(res => setGrievances(res.data.grievances));
-                    axios.get(`${API_BASE}/api/dashboard/all_grievances`).then(res => setAllGrievances(res.data.grievances));
-                } else if (type === 'suggestion') {
-                    axios.get(`${API_BASE}/api/dashboard/suggestions`).then(res => setSuggestions(res.data.suggestions));
-                } else if (type === 'volunteer') {
-                    axios.get(`${API_BASE}/api/dashboard/volunteers`).then(res => setVolunteers(res.data.volunteers));
-                } else if (type === 'voter') {
-                    axios.get(`${API_BASE}/api/dashboard/voters`).then(res => setVoters(res.data.voters));
-                }
-            })
-            .catch(err => {
-                console.error("Error deleting record", err);
-                alert("Failed to delete record");
-                // Let optimistic update persist unless user refreshes, or we could revert here
+        try {
+            await axios.delete(`${API_BASE}/api/dashboard/delete/${type}/${id}`);
+            
+            Swal.fire({
+                title: 'Deleted!',
+                text: 'The record has been deleted successfully.',
+                icon: 'success',
+                confirmButtonColor: '#00d26a'
             });
+
+            // Refresh data to be sure
+            if (type === 'grievance') {
+                axios.get(`${API_BASE}/api/dashboard/grievances`).then(res => setGrievances(res.data.grievances));
+                axios.get(`${API_BASE}/api/dashboard/all_grievances`).then(res => setAllGrievances(res.data.grievances));
+            } else if (type === 'suggestion') {
+                axios.get(`${API_BASE}/api/dashboard/suggestions`).then(res => setSuggestions(res.data.suggestions));
+            } else if (type === 'volunteer') {
+                axios.get(`${API_BASE}/api/dashboard/volunteers`).then(res => setVolunteers(res.data.volunteers));
+            } else if (type === 'voter') {
+                axios.get(`${API_BASE}/api/dashboard/voters`).then(res => setVoters(res.data.voters));
+            }
+        } catch (err) {
+            console.error("Error deleting record", err);
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to delete record.',
+                icon: 'error',
+                confirmButtonColor: '#e50914'
+            });
+            // Let optimistic update persist unless user refreshes, or we could revert here
+        }
     };
 
     return (
