@@ -563,82 +563,55 @@ export default function Dashboard() {
                     <div className="animated">
                         <div className="table-container">
                             <div className="table-header">Conversation Transcripts: Chat History</div>
-                            {selectedChatRef ? (
-                                <div style={{
-                                    padding: '20px',
-                                    textAlign: 'center',
-                                    color: 'var(--text-dim)'
-                                }}>
-                                    <button
-                                        onClick={() => setSelectedChatRef(null)}
-                                        style={{
-                                            marginBottom: '16px',
-                                            padding: '8px 16px',
-                                            background: 'var(--brand-surge)',
-                                            border: 'none',
-                                            color: 'white',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            fontWeight: 600,
-                                            pointerEvents: 'auto',
-                                            zIndex: 1001
-                                        }}
-                                    >
-                                        ← Back to Chats
-                                    </button>
-                                    <p style={{marginTop: '16px', fontSize: '13px'}}>Opening chat viewer...</p>
-                                </div>
-                            ) : (
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Ref ID</th>
-                                            <th>Voter Name</th>
-                                            <th>Phone</th>
-                                            <th>Booth</th>
-                                            <th>Type</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ref ID</th>
+                                        <th>Voter Name</th>
+                                        <th>Phone</th>
+                                        <th>Booth</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allGrievances.map(g => (
+                                        <tr key={g.id}>
+                                            <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{g.id}</td>
+                                            <td style={{ fontWeight: 600 }}>{g.name}</td>
+                                            <td>{g.phone}</td>
+                                            <td>BOOTH {g.booth}</td>
+                                            <td>{g.type}</td>
+                                            <td>
+                                                <span className={`status-badge status-${g.status.toLowerCase().replace(' ', '-')}`}>
+                                                    <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                                                    {g.status.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td>{g.date}</td>
+                                            <td>
+                                                <button
+                                                    onClick={() => setSelectedChatRef(g.id)}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        color: 'var(--brand-surge)',
+                                                        fontWeight: 600,
+                                                        fontSize: '13px',
+                                                        pointerEvents: 'auto'
+                                                    }}
+                                                    title="View Chat"
+                                                >
+                                                    View Chat
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {allGrievances.map(g => (
-                                            <tr key={g.id}>
-                                                <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{g.id}</td>
-                                                <td style={{ fontWeight: 600 }}>{g.name}</td>
-                                                <td>{g.phone}</td>
-                                                <td>BOOTH {g.booth}</td>
-                                                <td>{g.type}</td>
-                                                <td>
-                                                    <span className={`status-badge status-${g.status.toLowerCase().replace(' ', '-')}`}>
-                                                        <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
-                                                        {g.status.toUpperCase()}
-                                                    </span>
-                                                </td>
-                                                <td>{g.date}</td>
-                                                <td>
-                                                    <button
-                                                        onClick={() => setSelectedChatRef(g.id)}
-                                                        style={{
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            color: 'var(--brand-surge)',
-                                                            fontWeight: 600,
-                                                            fontSize: '13px'
-                                                        }}
-                                                        title="View Chat"
-                                                    >
-                                                        View Chat
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
