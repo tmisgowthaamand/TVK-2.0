@@ -209,6 +209,7 @@ export default function Dashboard() {
                                     <tr>
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
+                                        <th>Contact No.</th>
                                         <th>Booth / Part</th>
                                         <th>Type</th>
                                         <th>Category</th>
@@ -223,6 +224,7 @@ export default function Dashboard() {
                                         <tr key={issue.id}>
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{issue.id}</td>
                                             <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
+                                            <td style={{ fontWeight: 600, color: 'var(--brand-surge)' }}>{issue.phone}</td>
                                             <td style={{ color: 'var(--text-dim)' }}>SEC. {issue.booth}</td>
                                             <td>
                                                 {issue.type === 'Photo Evidence' ? (
@@ -277,6 +279,7 @@ export default function Dashboard() {
                                     <tr>
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
+                                        <th>Contact No.</th>
                                         <th>Booth</th>
                                         <th>EPIC / Voter ID</th>
                                         <th>Type</th>
@@ -292,6 +295,7 @@ export default function Dashboard() {
                                         <tr key={issue.id}>
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{issue.id}</td>
                                             <td style={{ fontWeight: 600 }}>{issue.name.toUpperCase()}</td>
+                                            <td style={{ fontWeight: 600, color: 'var(--brand-surge)' }}>{issue.phone}</td>
                                             <td>{issue.booth}</td>
                                             <td>
                                                 {issue.epic ? (
@@ -357,6 +361,7 @@ export default function Dashboard() {
                                     <tr>
                                         <th>Ref ID</th>
                                         <th>Voter Name</th>
+                                        <th>Contact No.</th>
                                         <th>Booth / Part</th>
                                         <th>Strategic Suggestion</th>
                                         <th>Review Status</th>
@@ -369,6 +374,7 @@ export default function Dashboard() {
                                         <tr key={s.id}>
                                             <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{s.id}</td>
                                             <td style={{ fontWeight: 600 }}>{s.name.toUpperCase()}</td>
+                                            <td style={{ fontWeight: 600, color: 'var(--brand-surge)' }}>{s.phone}</td>
                                             <td>{s.booth}</td>
                                             <td style={{ maxWidth: '350px', verticalAlign: 'top' }}>
                                                 <div style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-vivid)', whiteSpace: 'normal', wordWrap: 'break-word' }}>

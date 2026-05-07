@@ -6,20 +6,13 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import requests
-from bot_logic import handle_incoming_message, IMG_URLS
+from bot_logic import handle_incoming_message, IMG_URLS, CAT_MAP
 from db import voters_collection, grievances_col, member_requests_col
 from whatsapp import send_text_message, send_image_message, TOKEN
 
 load_dotenv()
 
-CAT_MAP = {
-    "cat_1": "Water & Drainage", "cat_2": "Roads & Infra", "cat_3": "Electricity",
-    "cat_4": "Public Transport", "cat_5": "Education", "cat_6": "Healthcare",
-    "cat_7": "Women Safety", "cat_8": "Employment", "cat_9": "Others",
-    "pcat_1": "Water & Drainage", "pcat_2": "Roads & Infra", "pcat_3": "Electricity",
-    "pcat_4": "Garbage & Sanitation", "pcat_5": "Public Property Damage", "pcat_6": "Others",
-    "vol_1": "Volunteer @ Booth", "vol_2": "Organise Meetings", "vol_3": "Spread Information", "vol_4": "Future Coordination"
-}
+# CAT_MAP is now imported from bot_logic to ensure single source of truth
 
 app = FastAPI(title="TVK WhatsApp Bot Backend")
 
@@ -77,6 +70,7 @@ async def get_grievances():
             "status": i.get("status", "Open"),
             "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else "N/A"),
             "description": i.get("description") or i.get("message") or "",
+            "phone": i.get("voter_phone") or i.get("phoneNumber") or i.get("phone") or "N/A",
             "type": i.get("type", "Grievance"),
             "photo_id": i.get("photo_id")
         })
@@ -100,6 +94,7 @@ async def get_all_grievances():
             "status": i.get("status", "Open"),
             "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
             "description": i.get("description") or i.get("message") or "",
+            "phone": i.get("voter_phone") or i.get("phoneNumber") or i.get("phone") or "N/A",
             "type": i.get("type", "Grievance"),
             "photo_id": i.get("photo_id")
         })
@@ -118,6 +113,7 @@ async def get_suggestions():
             "name": voter_name,
             "booth": str(i.get("booth") or i.get("partNumber") or ""),
             "suggestion": i.get("suggestion") or i.get("area") or "Member Request",
+            "phone": i.get("voter_phone") or i.get("phoneNumber") or i.get("phone") or "N/A",
             "status": i.get("status", "Pending"),
             "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
             "photo_id": i.get("photo_id")
@@ -137,7 +133,7 @@ async def get_volunteers():
             "booth": str(i.get("booth", i.get("partNumber", ""))),
             "role": CAT_MAP.get(role_raw, role_raw),
             "status": i.get("status", "Registered"),
-            "date": i.get("timestamp", i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
+            "date": i.get("timestamp") or (i.get("createdAt").strftime("%d %b %Y") if i.get("createdAt") else ""),
             "photo_id": i.get("photo_id")
         })
     return {"volunteers": results}
