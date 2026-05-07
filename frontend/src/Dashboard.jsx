@@ -564,7 +564,11 @@ export default function Dashboard() {
                         <div className="table-container">
                             <div className="table-header">Conversation Transcripts: Chat History</div>
                             {selectedChatRef ? (
-                                <>
+                                <div style={{
+                                    padding: '20px',
+                                    textAlign: 'center',
+                                    color: 'var(--text-dim)'
+                                }}>
                                     <button
                                         onClick={() => setSelectedChatRef(null)}
                                         style={{
@@ -576,13 +580,15 @@ export default function Dashboard() {
                                             borderRadius: '4px',
                                             cursor: 'pointer',
                                             fontSize: '13px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            pointerEvents: 'auto',
+                                            zIndex: 1001
                                         }}
                                     >
                                         ← Back to Chats
                                     </button>
-                                    <ChatViewer refId={selectedChatRef} onClose={() => setSelectedChatRef(null)} API_BASE={API_BASE} />
-                                </>
+                                    <p style={{marginTop: '16px', fontSize: '13px'}}>Opening chat viewer...</p>
+                                </div>
                             ) : (
                                 <table>
                                     <thead>
@@ -637,6 +643,7 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+            {selectedChatRef && <ChatViewer refId={selectedChatRef} onClose={() => setSelectedChatRef(null)} API_BASE={API_BASE} />}
         </>
     );
 
