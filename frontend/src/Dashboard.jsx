@@ -10,11 +10,13 @@ import {
     Shield,
     LogOut,
     Camera,
-    Trash2
+    Trash2,
+    MessageCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import Swal from 'sweetalert2';
+import ChatViewer from './ChatViewer';
 
 export default function Dashboard() {
     const { currentUser, logout } = useAuth();
@@ -33,6 +35,8 @@ export default function Dashboard() {
     const [volunteers, setVolunteers] = useState([]);
     const [analytics, setAnalytics] = useState([]);
     const [voters, setVoters] = useState([]);
+    const [chats, setChats] = useState([]);
+    const [selectedChatRef, setSelectedChatRef] = useState(null);
 
     const API_BASE = import.meta.env.VITE_API_BASE || "https://tvk-2-0-1.onrender.com";
 
@@ -57,9 +61,18 @@ export default function Dashboard() {
         axios.get(`${API_BASE}/api/dashboard/volunteers`).then(res => setVolunteers(res.data.volunteers)).catch(e => console.error(e));
         axios.get(`${API_BASE}/api/dashboard/booth_analytics`).then(res => setAnalytics(res.data.analytics)).catch(e => console.error(e));
         axios.get(`${API_BASE}/api/dashboard/voters`).then(res => setVoters(res.data.voters)).catch(e => console.error(e));
+
+        // Fetch Chat Statistics
+        axios.get(`${API_BASE}/api/dashboard/chat-summary`).then(res => {
+            // Fetch all grievances with chats linked
+            axios.get(`${API_BASE}/api/dashboard/all_grievances`).then(res => {
+                const grievancesWithChats = res.data.grievances.filter(g => g.id);
+                setChats(grievancesWithChats);
+            }).catch(e => console.error(e));
+        }).catch(e => console.error(e));
     }, []);
 
-    const navItems = ['Overview', 'Grievances', 'Suggestions', 'Volunteers', 'Voters', 'Booth Analytics'];
+    const navItems = ['Overview', 'Grievances', 'Suggestions', 'Volunteers', 'Voters', 'Booth Analytics', 'Chat History'];
 
     const handleStatusChange = (id, newStatus) => {
         // Optimistic UI updates
@@ -158,6 +171,7 @@ export default function Dashboard() {
                             {item === 'Volunteers' && <Shield size={18} />}
                             {item === 'Voters' && <Users size={18} />}
                             {item === 'Booth Analytics' && <Activity size={18} />}
+                            {item === 'Chat History' && <MessageCircle size={18} />}
                             {item}
                         </div>
                     ))}
@@ -541,6 +555,84 @@ export default function Dashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'Chat History' && (
+                    <div className="animated">
+                        <div className="table-container">
+                            <div className="table-header">Conversation Transcripts: Chat History</div>
+                            {selectedChatRef ? (
+                                <>
+                                    <button
+                                        onClick={() => setSelectedChatRef(null)}
+                                        style={{
+                                            marginBottom: '16px',
+                                            padding: '8px 16px',
+                                            background: 'var(--brand-surge)',
+                                            border: 'none',
+                                            color: 'white',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '13px',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        ← Back to Chats
+                                    </button>
+                                    <ChatViewer refId={selectedChatRef} onClose={() => setSelectedChatRef(null)} API_BASE={API_BASE} />
+                                </>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Ref ID</th>
+                                            <th>Voter Name</th>
+                                            <th>Phone</th>
+                                            <th>Booth</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {allGrievances.map(g => (
+                                            <tr key={g.id}>
+                                                <td style={{ fontWeight: 800, color: 'var(--text-vivid)', fontFamily: 'var(--font-display)' }}>{g.id}</td>
+                                                <td style={{ fontWeight: 600 }}>{g.name}</td>
+                                                <td>{g.phone}</td>
+                                                <td>BOOTH {g.booth}</td>
+                                                <td>{g.type}</td>
+                                                <td>
+                                                    <span className={`status-badge status-${g.status.toLowerCase().replace(' ', '-')}`}>
+                                                        <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                                                        {g.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td>{g.date}</td>
+                                                <td>
+                                                    <button
+                                                        onClick={() => setSelectedChatRef(g.id)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            color: 'var(--brand-surge)',
+                                                            fontWeight: 600,
+                                                            fontSize: '13px'
+                                                        }}
+                                                        title="View Chat"
+                                                    >
+                                                        View Chat
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
                 )}

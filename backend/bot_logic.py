@@ -3,7 +3,7 @@ import asyncio
 import uuid
 import datetime
 import random
-from db import voters_collection, grievances_col, member_requests_col, booth_pulse_col
+from db import voters_collection, grievances_col, member_requests_col, booth_pulse_col, chat_messages_col
 from whatsapp import send_text_message, send_image_message, send_button_message, send_list_message
 
 # Store sessions in memory { phone_number: { 'state': ..., 'last_active': ..., 'epic': ..., 'name': ..., 'booth': ... } }
@@ -61,10 +61,54 @@ PULSE_DATA = {
     "5": {"title": "Healthcare", "votes": 3, "percent": 8}
 }
 
+async def save_chat_message(phone, sender, message_type, content, media_id=None, location=None, conversation_id=None):
+    """Save a chat message to database."""
+    try:
+        doc = {
+            "phone": phone,
+            "sender": sender,
+            "type": message_type,
+            "content": content,
+            "timestamp": datetime.datetime.now(),
+            "status": "logged"
+        }
+        if media_id:
+            doc["media_id"] = media_id
+        if location:
+            doc["location"] = location
+        if conversation_id:
+            doc["conversation_id"] = conversation_id
+
+        await chat_messages_col.insert_one(doc)
+    except Exception as e:
+        print(f"Error saving chat message: {e}")
+
+async def save_bot_message(phone, content, message_type="text"):
+    """Save a bot response message."""
+    await save_chat_message(phone, "bot", message_type, content)
+
+async def link_chat_to_submission(phone, ref_id):
+    """Link all chat messages from a phone to a submission ref_id."""
+    try:
+        await chat_messages_col.update_many(
+            {"phone": phone, "ref_id": {"$exists": False}},
+            {"$set": {"ref_id": ref_id}}
+        )
+    except Exception as e:
+        print(f"Error linking chat to submission: {e}")
+
 async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, image_id=None):
     current_time = time.time()
     session = sessions.get(phone, None)
-    
+
+    # Log incoming message
+    if incoming_text:
+        await save_chat_message(phone, "user", "text", incoming_text)
+    elif image_id:
+        await save_chat_message(phone, "user", "image", "Image sent", media_id=image_id)
+    elif lat and lon:
+        await save_chat_message(phone, "user", "location", "Location shared", location={"lat": lat, "lon": lon})
+
     cancel_keywords = ["hi", "hello", "start", "menu", "reset", "vanakkam"]
     if incoming_text and incoming_text.lower() in cancel_keywords:
         sessions[phone] = {"state": "ASK_HAS_EPIC", "last_active": current_time}
@@ -756,6 +800,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         if session.get("photo_id"):
             doc["photo_id"] = session["photo_id"]
         await grievances_col.insert_one(doc)
+        await link_chat_to_submission(phone, ref_id)
 
         msg = f"✅ Issue Successfully Logged\n🔖 Reference ID: {ref_id}\n\nOur field team will visit this spot soon to verify and solve the issue.\n\nStatus: Open -> Ward Follow-up"
         send_image_message(phone, IMG_URLS["success"], msg)
@@ -783,6 +828,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         if session.get("photo_id"):
             doc["photo_id"] = session["photo_id"]
         await member_requests_col.insert_one(doc)
+        await link_chat_to_submission(phone, ref_id)
 
         if not skipped:
             msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur team will review your suggestion for Kavundampalayam.\n\n*Our team will connect with you soon at your booth.*"
@@ -809,6 +855,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         if session.get("photo_id"):
             doc["photo_id"] = session["photo_id"]
         await member_requests_col.insert_one(doc)
+        await link_chat_to_submission(phone, ref_id)
 
         if not skipped:
             msg = f"Thank you, *{session.get('name', 'Anonymous')}*. Your location has been recorded.\n\n🔖 Reference ID: {ref_id}\n\nOur organiser from Booth {session.get('booth', 'Unknown')} will contact you with next steps.\n\n*Our team will connect with you soon at your booth.*"
@@ -844,6 +891,7 @@ async def handle_loc_skip(phone, text, lat, lon, session, flow):
         if session.get("photo_id"):
             doc["photo_id"] = session["photo_id"]
         await grievances_col.insert_one(doc)
+        await link_chat_to_submission(phone, ref_id)
 
         if not skipped:
             msg = f"✅ Photo Evidence Submitted!\n\n───────────────\n🔖 Reference: {ref_id}\n📁 Category: {session.get('photo_cat', 'Others')}\n📝 Description: {session.get('photo_desc', '')}\n📸 Photo: Received\n📍 Location: Main Road, Kavundampalayam\n🏛️ Booth: {session['booth']}\n📅 Submitted: {today}\n───────────────\n\nOur field team will inspect the spot and take necessary action."
@@ -980,7 +1028,8 @@ async def handle_flow_scheme_review(phone, text, session):
         "type": "Scheme Application"
     }
     await member_requests_col.insert_one(doc)
-    
+    await link_chat_to_submission(phone, ref_id)
+
     msg = f"✅ Application Successfully Submitted!\n🎫 Application ID: {ref_id}\n\nOur team will track this application for you."
     send_image_message(phone, IMG_URLS["success"], msg)
     await send_loop_prompt(phone, session)

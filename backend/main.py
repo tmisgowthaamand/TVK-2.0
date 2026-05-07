@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import requests
 from bot_logic import handle_incoming_message, IMG_URLS, CAT_MAP
-from db import voters_collection, grievances_col, member_requests_col
+from db import voters_collection, grievances_col, member_requests_col, chat_messages_col
 from whatsapp import send_text_message, send_image_message, TOKEN
 
 load_dotenv()
@@ -281,6 +281,70 @@ async def handle_webhook(request: Request):
                         await handle_incoming_message(phone_number, text, lat, lon, image_id)
         return JSONResponse(content={"status": "ok"})
     return JSONResponse(status_code=404, content={"status": "not_found"})
+
+@app.get("/api/dashboard/chat/{ref_id}")
+async def get_chat_by_ref(ref_id: str):
+    try:
+        chats = await chat_messages_col.find({"ref_id": ref_id}).sort("timestamp", 1).to_list(None)
+        if not chats:
+            raise HTTPException(status_code=404, detail="Chat not found")
+
+        messages = []
+        for msg in chats:
+            messages.append({
+                "timestamp": msg.get("timestamp"),
+                "sender": msg.get("sender"),
+                "type": msg.get("type"),
+                "content": msg.get("content"),
+                "media_id": msg.get("media_id"),
+                "location": msg.get("location")
+            })
+
+        return {
+            "ref_id": ref_id,
+            "phone": chats[0].get("phone"),
+            "message_count": len(messages),
+            "messages": messages
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/user/chats/{phone}")
+async def get_user_chats(phone: str):
+    try:
+        chats = await chat_messages_col.find({"phone": phone, "ref_id": {"$exists": True}}).sort("timestamp", -1).to_list(None)
+
+        # Group by ref_id
+        ref_map = {}
+        for msg in chats:
+            ref_id = msg.get("ref_id")
+            if ref_id not in ref_map:
+                ref_map[ref_id] = {
+                    "ref_id": ref_id,
+                    "message_count": 0,
+                    "first_message": msg.get("timestamp"),
+                    "last_message": msg.get("timestamp")
+                }
+            ref_map[ref_id]["message_count"] += 1
+            ref_map[ref_id]["last_message"] = msg.get("timestamp")
+
+        return {"phone": phone, "chats": list(ref_map.values())}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/dashboard/chat-summary")
+async def get_chat_summary():
+    try:
+        total_chats = await chat_messages_col.count_documents({"ref_id": {"$exists": True}})
+        total_messages = await chat_messages_col.count_documents({})
+
+        return {
+            "total_chats": total_chats,
+            "total_messages": total_messages,
+            "avg_messages_per_chat": round(total_messages / total_chats, 2) if total_chats > 0 else 0
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
