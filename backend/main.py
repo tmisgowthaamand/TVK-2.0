@@ -285,14 +285,14 @@ async def handle_webhook(request: Request):
 @app.get("/api/dashboard/chat/{ref_id}")
 async def get_chat_by_ref(ref_id: str):
     try:
-        chats = await chat_messages_col.find({"ref_id": ref_id}).sort("timestamp", 1).to_list(None)
+        chats = await chat_messages_col.find({"ref_id": ref_id}).sort("timestamp", 1).to_list(length=None)
         if not chats:
             raise HTTPException(status_code=404, detail="Chat not found")
 
         messages = []
         for msg in chats:
             messages.append({
-                "timestamp": msg.get("timestamp"),
+                "timestamp": msg.get("timestamp").isoformat() if msg.get("timestamp") else None,
                 "sender": msg.get("sender"),
                 "type": msg.get("type"),
                 "content": msg.get("content"),
@@ -300,19 +300,23 @@ async def get_chat_by_ref(ref_id: str):
                 "location": msg.get("location")
             })
 
+        phone = chats[0].get("phone") if chats else "Unknown"
         return {
             "ref_id": ref_id,
-            "phone": chats[0].get("phone"),
+            "phone": phone,
             "message_count": len(messages),
             "messages": messages
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error fetching chat {ref_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching chat: {str(e)}")
 
 @app.get("/api/user/chats/{phone}")
 async def get_user_chats(phone: str):
     try:
-        chats = await chat_messages_col.find({"phone": phone, "ref_id": {"$exists": True}}).sort("timestamp", -1).to_list(None)
+        chats = await chat_messages_col.find({"phone": phone, "ref_id": {"$exists": True}}).sort("timestamp", -1).to_list(length=None)
 
         # Group by ref_id
         ref_map = {}
@@ -322,15 +326,16 @@ async def get_user_chats(phone: str):
                 ref_map[ref_id] = {
                     "ref_id": ref_id,
                     "message_count": 0,
-                    "first_message": msg.get("timestamp"),
-                    "last_message": msg.get("timestamp")
+                    "first_message": msg.get("timestamp").isoformat() if msg.get("timestamp") else None,
+                    "last_message": msg.get("timestamp").isoformat() if msg.get("timestamp") else None
                 }
             ref_map[ref_id]["message_count"] += 1
-            ref_map[ref_id]["last_message"] = msg.get("timestamp")
+            ref_map[ref_id]["last_message"] = msg.get("timestamp").isoformat() if msg.get("timestamp") else None
 
         return {"phone": phone, "chats": list(ref_map.values())}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error fetching chats for {phone}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching chats: {str(e)}")
 
 @app.get("/api/dashboard/chat-summary")
 async def get_chat_summary():
@@ -344,7 +349,8 @@ async def get_chat_summary():
             "avg_messages_per_chat": round(total_messages / total_chats, 2) if total_chats > 0 else 0
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error getting chat summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting chat summary: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
