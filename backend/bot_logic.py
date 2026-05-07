@@ -459,11 +459,11 @@ def handle_dir_srv_cat(phone, text, session):
     
     options = []
     if text == "cat_infra":
-        options = [{"id": "sub_infra_1", "title": "Road repair / pothole"}, {"id": "sub_infra_2", "title": "Streetlight broken"}]
+        options = [{"id": "sub_infra_1", "title": "Road/Pothole Repair"}, {"id": "sub_infra_2", "title": "Streetlight broken"}]
     elif text == "cat_health":
-        options = [{"id": "sub_health_1", "title": "PHC doctor absent"}, {"id": "sub_health_2", "title": "Ambulance no response"}]
+        options = [{"id": "sub_health_1", "title": "PHC doctor absent"}, {"id": "sub_health_2", "title": "Ambulance Delay"}]
     elif text == "cat_edu":
-        options = [{"id": "sub_edu_1", "title": "Scholarship pending"}, {"id": "sub_edu_2", "title": "School building repair"}]
+        options = [{"id": "sub_edu_1", "title": "Scholarship pending"}, {"id": "sub_edu_2", "title": "School Repair"}]
     elif text == "cat_ration":
         options = [{"id": "sub_ration_1", "title": "New ration card"}, {"id": "sub_ration_2", "title": "Pension not received"}]
     elif text == "cat_emp":
