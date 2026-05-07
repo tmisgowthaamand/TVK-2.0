@@ -985,39 +985,3 @@ async def handle_flow_scheme_review(phone, text, session):
     send_image_message(phone, IMG_URLS["success"], msg)
     await send_loop_prompt(phone, session)
 
-def handle_dir_srv_cat(phone, text, session):
-    cat_map_internal = {
-        "cat_infra": "Infrastructure", "cat_health": "Health", "cat_edu": "Education",
-        "cat_ration": "Ration & Welfare", "cat_emp": "Jobs & Livelihood"
-    }
-    if text in cat_map_internal:
-        session["service_cat"] = text
-        session["state"] = "DIR_SRV_SUB"
-        
-        # Sub-categories
-        subs = {
-            "cat_infra": [("Road repair", "Road repair"), ("Streetlight", "Streetlight")],
-            "cat_health": [("PHC Doctor", "PHC Doctor"), ("Ambulance", "Ambulance")],
-            "cat_edu": [("Scholarship", "Scholarship"), ("School build", "School build")],
-            "cat_ration": [("New Ration Card", "New Ration Card"), ("Pension issues", "Pension issues")],
-            "cat_emp": [("NREGA wages", "NREGA wages"), ("EPF benefit", "EPF benefit")]
-        }
-        
-        options = subs.get(text, [])
-        send_list_message(phone, "Select the issue type:", "Issue Types", [
-            {"id": opt[0], "title": opt[1], "description": f"Report {opt[1]} issue"} for opt in options
-        ])
-    else:
-        # Re-send categories if invalid
-        send_list_message(phone, "Please select a department:", "Departments", [
-            {"id": "cat_infra", "title": "Civic Works", "description": "Roads, Streetlights, etc."},
-            {"id": "cat_health", "title": "Health", "description": "Hospitals, PHC, etc."},
-            {"id": "cat_edu", "title": "Education", "description": "Schools, Scholarship, etc."},
-            {"id": "cat_ration", "title": "Ration/Welfare", "description": "Food, Pension, etc."},
-            {"id": "cat_emp", "title": "Employment", "description": "NREGA, EPF, etc."}
-        ])
-
-def handle_dir_srv_sub(phone, text, session):
-    session["service_sub"] = text
-    session["state"] = "FLOW1_DESC" # Jump to description
-    send_text_message(phone, f"You selected *{text}*. Please describe your issue in detail.")
