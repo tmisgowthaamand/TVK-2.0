@@ -80,6 +80,10 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
         await verify_epic(phone, incoming_text, session)
     elif state == "MAIN_MENU":
         await handle_main_menu(phone, incoming_text, session)
+    elif state == "DIR_SRV_CAT":
+        handle_dir_srv_cat(phone, incoming_text, session)
+    elif state == "DIR_SRV_SUB":
+        handle_dir_srv_sub(phone, incoming_text, session)
     elif state == "FLOW1_CAT":
         handle_flow1_cat(phone, incoming_text, session)
     elif state == "FLOW1_DESC":
@@ -177,10 +181,11 @@ This is the official WhatsApp of Venkatraman, TVK Candidate – Kavundampalayam.
 
 We are building a structured, booth-level understanding of issues in this constituency so that future priorities are based on real voter input.
 
-*Do you already have a Voter ID (EPIC number)?*"""
+*Do you already have a Voter ID, or would you like to browse services directly?*"""
     send_button_message(phone, msg, [
         {"id": "btn_have_epic", "title": "✅ Have Voter ID"},
-        {"id": "btn_no_epic", "title": "❌ Don't Have"}
+        {"id": "btn_no_epic", "title": "❌ Don't Have"},
+        {"id": "btn_choose_service", "title": "📋 Choose Service"}
     ], IMG_URLS["welcome_banner"])
 
 async def handle_ask_has_epic(phone, text, session):
@@ -195,6 +200,20 @@ async def handle_ask_has_epic(phone, text, session):
         session["booth"] = "Not provided yet"
         session["epic"] = None
         await send_main_menu(phone, session)
+    elif "btn_choose_service" in text_lower or "service" in text_lower:
+        session["state"] = "DIR_SRV_CAT"
+        session["name"] = "Citizen"
+        session["booth"] = "Not provided yet"
+        session["epic"] = None
+        sections = [{"title": "Service Categories", "rows": [
+            {"id": "cat_infra", "title": "🏗️ Infra & Civic Works"},
+            {"id": "cat_health", "title": "🏥 Health & Hospitals"},
+            {"id": "cat_edu", "title": "🎓 Education & Youth"},
+            {"id": "cat_ration", "title": "🌾 Ration & Welfare"},
+            {"id": "cat_emp", "title": "💼 Employment & Livelihoods"}
+        ]}]
+        msg = "Please select the department or service category you need assistance with:"
+        send_list_message(phone, msg, "View Categories", sections)
     else:
         send_text_message(phone, "Please select an option using the buttons.")
 
@@ -316,18 +335,13 @@ _Click the link above to start a voice call or chat._"""
         session["state"] = "LOOP_PROMPT"
 
     elif sel == "menu_1" or ("report" in sel and "issue" in sel):
-        session["state"] = "FLOW1_CAT"
-        sections = [{"title": "Categories", "rows": [
-            {"id": "cat_1", "title": "Water & Drainage"},
-            {"id": "cat_2", "title": "Roads & Infra"},
-            {"id": "cat_3", "title": "Electricity"},
-            {"id": "cat_4", "title": "Public Transport"},
-            {"id": "cat_5", "title": "Education"},
-            {"id": "cat_6", "title": "Healthcare"},
-            {"id": "cat_7", "title": "Agriculture & Farmers"},
-            {"id": "cat_8", "title": "Women Safety"},
-            {"id": "cat_9", "title": "Sports & Youth"},
-            {"id": "cat_10", "title": "Others"},
+        session["state"] = "DIR_SRV_CAT"
+        sections = [{"title": "Service Categories", "rows": [
+            {"id": "cat_infra", "title": "🏗️ Infra & Civic Works"},
+            {"id": "cat_health", "title": "🏥 Health & Hospitals"},
+            {"id": "cat_edu", "title": "🎓 Education & Youth"},
+            {"id": "cat_ration", "title": "🌾 Ration & Welfare"},
+            {"id": "cat_emp", "title": "💼 Employment & Livelihoods"}
         ]}]
         msg = f"Thank you, {session['name']}.\nPlease select the area where you are facing a concern:"
         send_list_message(phone, msg, "Select Category", sections, "📝 Report an Issue")
@@ -437,6 +451,47 @@ _Click the link above to start a voice call or chat._"""
         
     else:
         send_text_message(phone, "Please select a valid option from the menu.")
+
+
+def handle_dir_srv_cat(phone, text, session):
+    session["dir_cat"] = text
+    session["state"] = "DIR_SRV_SUB"
+    
+    options = []
+    if text == "cat_infra":
+        options = [{"id": "sub_infra_1", "title": "Road repair / pothole"}, {"id": "sub_infra_2", "title": "Streetlight broken"}]
+    elif text == "cat_health":
+        options = [{"id": "sub_health_1", "title": "PHC doctor absent"}, {"id": "sub_health_2", "title": "Ambulance no response"}]
+    elif text == "cat_edu":
+        options = [{"id": "sub_edu_1", "title": "Scholarship pending"}, {"id": "sub_edu_2", "title": "School building repair"}]
+    elif text == "cat_ration":
+        options = [{"id": "sub_ration_1", "title": "New ration card"}, {"id": "sub_ration_2", "title": "Pension not received"}]
+    elif text == "cat_emp":
+        options = [{"id": "sub_emp_1", "title": "NREGA wages pending"}, {"id": "sub_emp_2", "title": "EPF / ESI issue"}]
+    else:
+        options = [{"id": "sub_gen_1", "title": "General Issue"}]
+        
+    send_button_message(phone, "Please choose the specific issue:", options, IMG_URLS["desc_banner"])
+
+def handle_dir_srv_sub(phone, text, session):
+    cat_map_internal = {
+        "cat_infra": "Infrastructure", "cat_health": "Health", "cat_edu": "Education",
+        "cat_ration": "Ration & Welfare", "cat_emp": "Employment"
+    }
+    sub_map = {
+        "sub_infra_1": "Road repair / pothole", "sub_infra_2": "Streetlight not working",
+        "sub_health_1": "PHC doctor absent", "sub_health_2": "Ambulance no response",
+        "sub_edu_1": "Scholarship pending", "sub_edu_2": "School building repair",
+        "sub_ration_1": "New ration card", "sub_ration_2": "Pension not received",
+        "sub_emp_1": "NREGA wages pending", "sub_emp_2": "EPF / ESI issue"
+    }
+    
+    session["cat"] = cat_map_internal.get(session.get("dir_cat"), "General")
+    session["desc"] = sub_map.get(text, text)
+    
+    session["state"] = "FLOW1_PHOTO"
+    body = "Thank you for the information. Now, please share a photo of the issue if possible.\n\nVisual evidence helps our team assess the situation faster."
+    send_button_message(phone, body, [{"id": "skip_photo", "title": "SKIP"}], IMG_URLS["photo_banner"])
 
 
 def handle_flow1_cat(phone, text, session):
