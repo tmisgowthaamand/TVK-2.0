@@ -210,7 +210,7 @@ async def handle_ask_has_epic(phone, text, session):
             {"id": "cat_health", "title": "🏥 Health & Hospitals"},
             {"id": "cat_edu", "title": "🎓 Education & Youth"},
             {"id": "cat_ration", "title": "🌾 Ration & Welfare"},
-            {"id": "cat_emp", "title": "💼 Employment & Livelihoods"}
+            {"id": "cat_emp", "title": "💼 Jobs & Livelihood"}
         ]}]
         msg = "Please select the department or service category you need assistance with:"
         send_list_message(phone, msg, "View Categories", sections)
@@ -341,7 +341,7 @@ _Click the link above to start a voice call or chat._"""
             {"id": "cat_health", "title": "🏥 Health & Hospitals"},
             {"id": "cat_edu", "title": "🎓 Education & Youth"},
             {"id": "cat_ration", "title": "🌾 Ration & Welfare"},
-            {"id": "cat_emp", "title": "💼 Employment & Livelihoods"}
+            {"id": "cat_emp", "title": "💼 Jobs & Livelihood"}
         ]}]
         msg = f"Thank you, {session['name']}.\nPlease select the area where you are facing a concern:"
         send_list_message(phone, msg, "Select Category", sections, "📝 Report an Issue")
