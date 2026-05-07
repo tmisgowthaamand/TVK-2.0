@@ -115,6 +115,25 @@ async def handle_incoming_message(phone, incoming_text, lat=None, lon=None, imag
     elif state == "FLOW8_LOC":
         await handle_loc_skip(phone, incoming_text, lat, lon, session, "FLOW8")
         
+    elif state == "FLOW_SCHEME_CAT":
+        handle_flow_scheme_cat(phone, incoming_text, session)
+    elif state == "FLOW_SCHEME_CHECKLIST":
+        handle_flow_scheme_checklist(phone, incoming_text, session)
+    elif state == "FLOW_SCHEME_NAME":
+        handle_flow_scheme_name(phone, incoming_text, session)
+    elif state == "FLOW_SCHEME_AADHAAR":
+        handle_flow_scheme_aadhaar(phone, incoming_text, session)
+    elif state == "FLOW_SCHEME_INCOME":
+        handle_flow_scheme_income(phone, incoming_text, session)
+    elif state == "FLOW_SCHEME_DOC_AADHAAR":
+        handle_flow_scheme_doc_aadhaar(phone, image_id, incoming_text, session)
+    elif state == "FLOW_SCHEME_DOC_RATION":
+        handle_flow_scheme_doc_ration(phone, image_id, incoming_text, session)
+    elif state == "FLOW_SCHEME_DOC_INCOME":
+        handle_flow_scheme_doc_income(phone, image_id, incoming_text, session)
+    elif state == "FLOW_SCHEME_REVIEW":
+        await handle_flow_scheme_review(phone, incoming_text, session)
+
     elif state == "POST_FLOW_EPIC":
         await handle_post_flow_epic(phone, incoming_text, session)
     elif state == "POST_FLOW_NAME":
@@ -242,7 +261,7 @@ We are documenting concerns so that future priorities are shaped by real people 
             "title": "Core Service",
             "rows": [
                 {"id": "menu_1", "title": "🔴 Report Local Issue"},
-                {"id": "menu_2", "title": "💡 Ideas & Improvements"},
+                {"id": "menu_2", "title": "📄 Apply Scheme/Cert"},
                 {"id": "menu_3", "title": "🤝 Participate"},
                 {"id": "menu_4", "title": "📢 Stay Informed"}
             ]
@@ -313,10 +332,17 @@ _Click the link above to start a voice call or chat._"""
         msg = f"Thank you, {session['name']}.\nPlease select the area where you are facing a concern:"
         send_list_message(phone, msg, "Select Category", sections, "📝 Report an Issue")
         
-    elif sel == "menu_2" or "idea" in sel or "improve" in sel:
-        session["state"] = "FLOW2_SUGG"
-        msg = "We believe strong constituencies are built not just by solving issues, but by listening to constructive ideas.\n\nPlease share your suggestion in up to 250 characters."
-        send_image_message(phone, IMG_URLS["desc_banner"], msg)
+    elif sel == "menu_2" or "scheme" in sel or "cert" in sel:
+        session["state"] = "FLOW_SCHEME_CAT"
+        msg = "📄 *Schemes & Certificates Portal*\nWhich document or scheme do you need assistance with?"
+        sections = [{"title": "Available Services", "rows": [
+            {"id": "sch_1", "title": "New Ration Card"},
+            {"id": "sch_2", "title": "Community Certificate"},
+            {"id": "sch_3", "title": "Income Certificate"},
+            {"id": "sch_4", "title": "Widow Pension Scheme"},
+            {"id": "sch_5", "title": "Education Scholarship"}
+        ]}]
+        send_list_message(phone, msg, "View Services", sections)
     
     elif sel == "menu_3" or "participate" in sel:
         session["state"] = "FLOW3_MODE"
@@ -818,3 +844,80 @@ async def handle_flow9_networks(phone, text, session):
             {"id": "btn_tvk_itwing", "title": "💻 TVK IT Wing"},
             {"id": "btn_main_menu", "title": "🏠 Main Menu"}
         ], None)
+
+def handle_flow_scheme_cat(phone, text, session):
+    session["scheme_cat"] = text
+    session["state"] = "FLOW_SCHEME_CHECKLIST"
+    msg = "⚠️ Before we start, please ensure you have clear photos of:\n1. Ration Card\n2. Aadhaar Card\n3. Income Proof\n\nAre you ready?"
+    send_button_message(phone, msg, [{"id": "btn_ready", "title": "Yes, ready"}, {"id": "btn_not_ready", "title": "No, later"}], IMG_URLS["desc_banner"])
+
+def handle_flow_scheme_checklist(phone, text, session):
+    if text and ("not" in text.lower() or "later" in text.lower() or "no" in text.lower()):
+        session["state"] = "MAIN_MENU"
+        send_text_message(phone, "No problem. You can apply later from the main menu.")
+        return
+    session["state"] = "FLOW_SCHEME_NAME"
+    send_text_message(phone, "Great! Please reply with the Applicant's Full Name exactly as it appears on their Aadhaar Card.")
+
+def handle_flow_scheme_name(phone, text, session):
+    session["scheme_name"] = text
+    session["state"] = "FLOW_SCHEME_AADHAAR"
+    send_text_message(phone, "Please reply with your 12-digit Aadhaar Number.")
+
+def handle_flow_scheme_aadhaar(phone, text, session):
+    session["scheme_aadhaar"] = text
+    session["state"] = "FLOW_SCHEME_INCOME"
+    send_text_message(phone, "Please reply with your Annual Family Income in Rupees (e.g., 150000).")
+
+def handle_flow_scheme_income(phone, text, session):
+    session["scheme_income"] = text
+    session["state"] = "FLOW_SCHEME_DOC_AADHAAR"
+    send_text_message(phone, "📸 Upload 1/3: Aadhaar Card\nPlease send a clear photo of your Aadhaar Card.")
+
+def handle_flow_scheme_doc_aadhaar(phone, image_id, text, session):
+    session["scheme_doc_aadhaar"] = image_id or "text_skipped"
+    session["state"] = "FLOW_SCHEME_DOC_RATION"
+    send_text_message(phone, "📸 Upload 2/3: Ration Card\nPlease send a clear photo of your Ration Card.")
+
+def handle_flow_scheme_doc_ration(phone, image_id, text, session):
+    session["scheme_doc_ration"] = image_id or "text_skipped"
+    session["state"] = "FLOW_SCHEME_DOC_INCOME"
+    send_text_message(phone, "📸 Upload 3/3: Income Proof\nPlease send a photo of your recent Salary Slip or Income Proof.")
+
+def handle_flow_scheme_doc_income(phone, image_id, text, session):
+    session["scheme_doc_income"] = image_id or "text_skipped"
+    session["state"] = "FLOW_SCHEME_REVIEW"
+    
+    scheme_name = session.get('scheme_name', 'Unknown')
+    scheme_aadhaar = session.get('scheme_aadhaar', 'Unknown')
+    scheme_income = session.get('scheme_income', 'Unknown')
+    
+    msg = f"📋 Application Summary:\nApplicant: {scheme_name}\nAadhaar: {scheme_aadhaar}\nIncome: ₹{scheme_income}\n\nSubmit this application?"
+    send_button_message(phone, msg, [{"id": "btn_submit", "title": "Submit"}, {"id": "btn_cancel", "title": "Cancel"}], IMG_URLS["desc_banner"])
+
+async def handle_flow_scheme_review(phone, text, session):
+    if text and "cancel" in text.lower():
+        session["state"] = "MAIN_MENU"
+        send_text_message(phone, "Application cancelled.")
+        return
+        
+    ref_id = f"INC{random.randint(10000, 99999)}"
+    # Save to db
+    doc = {
+        "ref_id": ref_id,
+        "voter_phone": phone,
+        "voter_name": session.get('scheme_name', 'Anonymous'),
+        "booth": session.get('booth', 'Unknown'),
+        "epic": session.get('epic'),
+        "scheme": session.get('scheme_cat', 'Scheme'),
+        "aadhaar": session.get('scheme_aadhaar'),
+        "income": session.get('scheme_income'),
+        "status": "Pending",
+        "timestamp": datetime.datetime.now().strftime("%d %b %Y"),
+        "type": "Scheme Application"
+    }
+    await member_requests_col.insert_one(doc)
+    
+    msg = f"✅ Application Successfully Submitted!\n🎫 Application ID: {ref_id}\n\nOur team will track this application for you."
+    send_image_message(phone, IMG_URLS["success"], msg)
+    await send_loop_prompt(phone, session)
