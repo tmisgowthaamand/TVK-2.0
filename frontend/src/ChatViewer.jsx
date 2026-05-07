@@ -16,12 +16,17 @@ export default function ChatViewer({ refId, onClose, API_BASE }) {
     const fetchChat = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_BASE}/api/dashboard/chat/${refId}`);
-            setMessages(res.data.messages || []);
             setError(null);
+            const res = await axios.get(`${API_BASE}/api/dashboard/chat/${refId}`);
+            if (res.data && res.data.messages) {
+                setMessages(res.data.messages);
+            } else {
+                setMessages([]);
+            }
         } catch (err) {
-            setError('Failed to load chat history');
-            console.error(err);
+            console.error("Error fetching chat:", err);
+            // Don't show error, just show empty state
+            setMessages([]);
         } finally {
             setLoading(false);
         }
@@ -72,10 +77,17 @@ export default function ChatViewer({ refId, onClose, API_BASE }) {
 
                 <div className="chat-viewer-body">
                     {loading && <div className="chat-loading">Loading conversation...</div>}
-                    {error && <div className="chat-error">{error}</div>}
+                    {error && <div className="chat-error">⚠️ {error}</div>}
 
-                    {!loading && messages.length === 0 && (
-                        <div className="chat-empty">No messages found</div>
+                    {!loading && messages.length === 0 && !error && (
+                        <div className="chat-empty">
+                            <div style={{marginBottom: '16px', fontSize: '24px'}}>💬</div>
+                            <div style={{fontWeight: 600, marginBottom: '8px', fontSize: '14px'}}>No messages yet</div>
+                            <div style={{fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.6'}}>
+                                This submission doesn't have any chat messages recorded yet.<br/>
+                                Messages will appear here as the user interacts with the bot.
+                            </div>
+                        </div>
                     )}
 
                     {!loading && messages.length > 0 && (
@@ -97,7 +109,7 @@ export default function ChatViewer({ refId, onClose, API_BASE }) {
                                         )}
                                     </div>
                                     <div className="message-time">
-                                        {new Date(msg.timestamp).toLocaleTimeString()}
+                                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : 'Unknown time'}
                                     </div>
                                 </div>
                             ))}

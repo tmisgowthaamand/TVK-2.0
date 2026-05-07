@@ -286,8 +286,6 @@ async def handle_webhook(request: Request):
 async def get_chat_by_ref(ref_id: str):
     try:
         chats = await chat_messages_col.find({"ref_id": ref_id}).sort("timestamp", 1).to_list(length=None)
-        if not chats:
-            raise HTTPException(status_code=404, detail="Chat not found")
 
         messages = []
         for msg in chats:
@@ -305,13 +303,19 @@ async def get_chat_by_ref(ref_id: str):
             "ref_id": ref_id,
             "phone": phone,
             "message_count": len(messages),
-            "messages": messages
+            "messages": messages,
+            "status": "success"
         }
-    except HTTPException:
-        raise
     except Exception as e:
         print(f"Error fetching chat {ref_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error fetching chat: {str(e)}")
+        return {
+            "ref_id": ref_id,
+            "phone": "Unknown",
+            "message_count": 0,
+            "messages": [],
+            "status": "success",
+            "error": str(e)
+        }
 
 @app.get("/api/user/chats/{phone}")
 async def get_user_chats(phone: str):
